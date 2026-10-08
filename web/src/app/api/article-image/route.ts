@@ -46,6 +46,51 @@ async function anadoluFeedImage(articleUrl: string): Promise<string | null> {
   return null;
 }
 
+/** Washington Post feeds can carry the original image when article HTML is inaccessible. */
+async function washingtonPostFeedImage(articleUrl: string): Promise<string | null> {
+  const feeds = [
+    'https://feeds.washingtonpost.com/rss/world',
+    'https://feeds.washingtonpost.com/rss/politics',
+    'https://feeds.washingtonpost.com/rss/national',
+  ];
+  const article = new URL(articleUrl);
+  const articlePath = article.pathname.replace(/\/+$/, '');
+  for (const feed of feeds) {
+    try {
+      const response = await fetch(feed, { signal: AbortSignal.timeout(3200), next: { revalidate: 300 } });
+      if (!response.ok) continue;
+      const xml = (await response.text()).slice(0, 600_000);
+      const items = xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? [];
+      for (const item of items) {
+        const link = item.match(/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/i)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+        if (!link) continue;
+        let match = false;
+        try { match = new URL(link).pathname.replace(/\/+$/, '') === articlePath; } catch { /* ignore invalid link */ }
+        if (!match) continue;
+        const tags = [
+          ...item.matchAll(/<(?:media:content|media:thumbnail|enclosure)\b([^>]*?)\/?>/gi),
+        ];
+        for (const tag of tags) {
+          const attributes = tag[1] ?? '';
+          const type = attributes.match(/\btype=["']([^"']+)["']/i)?.[1];
+          if (type && !type.startsWith('image/')) continue;
+          const raw = attributes.match(/\burl=["']([^"']+)["']/i)?.[1];
+          if (!raw) continue;
+          const image = new URL(raw.replace(/&amp;/gi, '&'), feed);
+          if (image.protocol === 'https:' && !/(?:logo|icon|avatar|placeholder)/i.test(image.pathname)) return image.toString();
+        }
+        const description = item.match(/<(?:description|content:encoded)>([\s\S]*?)<\/(?:description|content:encoded)>/i)?.[1] ?? '';
+        const raw = description.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i)?.[1];
+        if (raw) {
+          const image = new URL(raw.replace(/&amp;/gi, '&'), feed);
+          if (image.protocol === 'https:' && !/(?:logo|icon|avatar|placeholder)/i.test(image.pathname)) return image.toString();
+        }
+      }
+    } catch { /* feeds can be temporarily inaccessible */ }
+  }
+  return null;
+}
+
 async function htmlHead(response: Response): Promise<string> {
   const reader = response.body?.getReader();
   if (!reader) return '';
@@ -76,6 +121,10 @@ export async function GET(req: NextRequest) {
     if (isAnadolu) {
       const rssImage = await anadoluFeedImage(data.link);
       if (rssImage) return NextResponse.json({ image:rssImage }, { headers:{ 'Cache-Control':'public, s-maxage=300' } });
+    }
+    if (new URL(data.link).hostname.endsWith('washingtonpost.com')) {
+      const rssImage = await washingtonPostFeedImage(data.link);
+      if (rssImage) return NextResponse.json({ image: rssImage }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
     }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), isAnadolu ? 6500 : 3200);
