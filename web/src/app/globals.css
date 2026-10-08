@@ -477,3 +477,27 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 .monitor-header-filter-controls,.monitor-header-filter-controls .monitor-filter-actions{width:100%;gap:7px}
 .monitor-header-filter-controls .monitor-select{height:36px;min-height:36px;font-size:11px}
 }
+
+/* Unified header toolbar: consistent height, balanced widths, no desktop wrap */
+.monitor-header-secondary{display:block;padding:12px 0 15px;min-height:0}
+.monitor-search-filter-group{display:grid;grid-template-columns:minmax(330px,1fr) auto;width:100%;gap:12px;align-items:center}
+.monitor-search-filter-group .monitor-search{width:100%;max-width:none;min-width:0;display:flex;gap:9px;align-items:center}
+.monitor-search-filter-group .monitor-search input{flex:1;min-width:0;height:42px;font-size:13px}
+.monitor-search-filter-group .monitor-search button{height:42px;flex:0 0 96px}
+.monitor-header-filter-slot{min-width:0;max-width:100%}
+.monitor-header-filter-controls,.monitor-header-filter-controls .monitor-filter-actions{display:flex;align-items:center;gap:9px;flex-wrap:nowrap}
+.monitor-header-filter-controls .date-filter{flex-wrap:nowrap}
+.monitor-header-filter-controls .monitor-select{height:42px;min-height:42px;font-size:12px;white-space:nowrap}
+.monitor-header-filter-controls select.monitor-select{width:145px}
+.monitor-header-filter-controls .monitor-source-filter>.monitor-select{min-width:132px;justify-content:space-between}
+@media(max-width:950px){
+.monitor-search-filter-group{grid-template-columns:minmax(0,1fr)}
+.monitor-header-filter-slot{width:100%}
+}
+@media(max-width:767px){
+.monitor-search-filter-group{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.monitor-search-filter-group .monitor-search{width:100%;flex:none}
+.monitor-search-filter-group .monitor-search button{flex-basis:82px}
+.monitor-header-filter-controls .monitor-filter-actions{flex-wrap:wrap}
+.monitor-header-filter-controls .monitor-select{height:38px;min-height:38px}
+}
