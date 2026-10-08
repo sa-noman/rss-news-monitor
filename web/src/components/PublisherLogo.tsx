@@ -37,7 +37,7 @@ export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: Pu
         />
       ) : (
         <span className={'publisher-monogram ' + (large ? 'publisher-sharp-wordmark' : '')} aria-hidden>
-          {large ? name : sourceMonogram(name)}
+          {sourceMonogram(name)}
         </span>
       )}
     </span>
