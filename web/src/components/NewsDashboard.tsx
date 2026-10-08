@@ -181,7 +181,9 @@ export function NewsDashboard({ items, sources, children }: Props) {
                     {/* Wikimedia Commons hosts Haaretz's square 2023 logo in vector format. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Logo_Haaretz_2023_blue.svg"
-                      alt="Haaretz" loading="lazy" referrerPolicy="no-referrer" />
+                      alt="Haaretz" loading="lazy" referrerPolicy="no-referrer"
+                      onError={event => { event.currentTarget.style.display = "none"; }} />
+                    <span className="publisher-monogram" aria-hidden="true" style={{position:"absolute",zIndex:-1}}>H</span>
                   </span>
                 ) : (
                   <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
