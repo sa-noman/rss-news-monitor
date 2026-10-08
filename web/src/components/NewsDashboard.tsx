@@ -225,7 +225,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
               </div>
             ))}
           </div>
-          <button type="button" className="monitor-all-sources monitor-source-expand" aria-expanded={expandedSources} aria-controls="monitor-sidebar-source-list" onClick={() => setExpandedSources(value => !value)}>{expandedSources ? (bn ? "কম সোর্স দেখুন" : "Show fewer sources") : (bn ? "সব সোর্স দেখুন" : "View all sources")} <span aria-hidden>{expandedSources ? "↑" : "↓"}</span></button>
+          <button type="button" className="monitor-all-sources monitor-source-expand" aria-expanded={expandedSources} aria-controls="monitor-sidebar-source-list" onClick={() => setExpandedSources(value => !value)}>{expandedSources ? (bn ? "প্রথম ১০টি দেখুন" : "Show first 10 sources") : (bn ? `সব ${uniqueSources.length}টি সোর্স দেখুন` : `View all ${uniqueSources.length} sources`)} <span aria-hidden>{expandedSources ? "↑" : "↓"}</span></button>
           <div className="monitor-sidebar-note">
             <strong>{bn ? 'মনিটরিং' : 'Monitoring'}</strong>
             <span>{bn ? 'সর্বশেষ সংবাদ ও সোর্সের অবস্থা' : 'Latest headlines and source status'}</span>
