@@ -575,14 +575,26 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 @media(prefers-reduced-motion:reduce){.monitor-source-focused{animation:none;outline:2px solid #3979ce}}
 
 /* Expand Source Monitoring in place; only the source rows get their own scroll. */
+.monitor-source-sidebar .monitor-sidebar-list {
+  transition: max-height .38s cubic-bezier(.22,.75,.25,1);
+}
 .monitor-source-sidebar .monitor-sidebar-list-expanded{
-  max-height:min(60vh,560px);
+  /* More room than the collapsed ten rows; never visually shrink on Expand. */
+  max-height:1050px;
   overflow-y:auto;
   overflow-x:hidden;
   overscroll-behavior:contain;
   scrollbar-width:thin;
   scrollbar-color:var(--border) transparent;
   padding-right:5px;
+}
+.monitor-source-sidebar .monitor-sidebar-list-expanded .monitor-sidebar-source:nth-child(n+11){
+  animation:monitor-source-row-reveal .35s ease-out both;
+}
+@keyframes monitor-source-row-reveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){
+  .monitor-source-sidebar .monitor-sidebar-list{transition:none}
+  .monitor-source-sidebar .monitor-sidebar-list-expanded .monitor-sidebar-source:nth-child(n+11){animation:none}
 }
 .monitor-source-sidebar .monitor-source-expand{
   display:inline-flex;
