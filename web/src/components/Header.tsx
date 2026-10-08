@@ -15,7 +15,7 @@ export function Header({ sourceCount, query }: {
       <div className="monitor-header-inner">
         <div className="monitor-brand-row">
           <div id="monitor-category-trigger" className="monitor-category-header-slot" />
-          <Link href="/" className="monitor-brand headline">{dict.siteName}</Link>
+          <Link href="/" className="monitor-brand headline">Global News Monitor</Link>
           <nav className="monitor-top-nav" aria-label="Main navigation">
             <Link href="/">{dict.latest}</Link>
             <Link href="/sources">{dict.sourceHealth}</Link>
@@ -32,9 +32,12 @@ export function Header({ sourceCount, query }: {
         </div>
         <div className="monitor-header-secondary">
           <p>{dict.tagline}</p>
+          <div className="monitor-search-filter-group">
           <Suspense fallback={<div className="monitor-search" aria-hidden><input disabled placeholder={dict.searchPlaceholder} /><button disabled>{dict.search}</button></div>}>
             <SearchBar defaultValue={query.q ?? ''} />
           </Suspense>
+          <div id="monitor-header-filter-slot" className="monitor-header-filter-slot" />
+          </div>
         </div>
       </div>
     </header>
