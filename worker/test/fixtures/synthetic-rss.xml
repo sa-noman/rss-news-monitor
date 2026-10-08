@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mr-s">
+  <channel>
+    <title>Synthetic Test Feed &amp; Friends</title>
+    <link>https://example.org/</link>
+    <description>Edge cases: CDATA, entities, relative links, missing dates.</description>
+    <item>
+      <title><![CDATA[ Ceasefire talks resume as &amp; delegates meet ]]></title>
+      <link>/news/ceasefire-talks</link>
+      <description><![CDATA[<p>Delegates met in <b>Geneva</b> &#8212; talks continue &#x2014; sources say.</p><img src="/img/geneva.jpg" width="640" />]]></description>
+      <pubDate>Thu, 08 Oct 2026 06:30:00 +0000</pubDate>
+      <dc:creator>Jane Reporter</dc:creator>
+      <category>World</category>
+    </item>
+    <item>
+      <title>Election results &amp;amp; the road ahead</title>
+      <link>https://example.org/news/election-results</link>
+      <description>Voters went to the polls.&amp;nbsp;Turnout was high. Continue reading at example.org</description>
+      <pubDate>not a date at all</pubDate>
+    </item>
+    <item>
+      <title>No link here, must be skipped</title>
+      <description>This item has no usable link.</description>
+    </item>
+    <item>
+      <title><![CDATA[Market rally lifts stocks 2%]]></title>
+      <link>https://example.org/news/market-rally</link>
+      <description>Shares climbed on strong earnings.</description>
+      <enclosure url="/media/chart.png" type="image/png" length="1234" />
+    </item>
+  </channel>
+</rss>

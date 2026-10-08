@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <title>Example News — All Stories</title>
+  <link href="https://example.com/" rel="alternate" type="text/html" />
+  <link href="https://example.com/feed.xml" rel="self" type="application/atom+xml" />
+  <updated>2026-10-08T04:00:00Z</updated>
+  <entry>
+    <title type="html">The White House and the Market Are Telling Different Stories</title>
+    <link href="https://example.com/newsletters/2026/10/bond-market/?utm_source=feed" rel="alternate" type="text/html" />
+    <link href="https://example.com/feed.xml" rel="self" type="application/atom+xml" />
+    <published>2026-10-07T18:33:00-04:00</published>
+    <updated>2026-10-07T18:57:02-04:00</updated>
+    <author><name>Will Gottsegen</name><uri>https://example.com/author/will/?utm_source=feed</uri></author>
+    <summary type="html">The Treasury secretary is projecting confidence while struggling to get borrowing costs down.</summary>
+    <content type="html">&lt;p&gt;This is the full newsletter text which must never be stored verbatim…&lt;/p&gt;</content>
+    <media:content url="https://cdn.example.com/media/2026/10/hero/original.jpg" />
+    <category term="business" />
+  </entry>
+  <entry>
+    <title>Second story with no image and only an updated timestamp</title>
+    <link href="https://example.com/news/second-story" />
+    <updated>2026-10-08T01:15:00Z</updated>
+    <summary>A short summary. The post Second story appeared first on Example News.</summary>
+  </entry>
+</feed>

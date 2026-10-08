@@ -1,0 +1,2 @@
+This is what a bot-block / error page looks like — not XML at all.
+It must be detected as "not a feed" instead of crashing the run.

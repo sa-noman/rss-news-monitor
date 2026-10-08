@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — a quiet "newsroom" palette, light + dark.
+   No external fonts: the preview iframe has no network, and system stacks are
+   faster anyway. Georgia gives headlines a newspaper feel.
+--------------------------------------------------------------------------- */
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --surface-2: #fbfaf8;
+  --border: #e3e1db;
+  --text: #17181a;
+  --muted: #6a6c70;
+  --accent: #b4231f;
+  --accent-soft: rgba(180, 35, 31, 0.1);
+  --shadow: 0 1px 2px rgba(20, 20, 20, 0.04), 0 8px 24px rgba(20, 20, 20, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c0d10;
+    --surface: #15171b;
+    --surface-2: #1b1e23;
+    --border: #282c33;
+    --text: #eef0f2;
+    --muted: #9aa0a8;
+    --accent: #ff6b5e;
+    --accent-soft: rgba(255, 107, 94, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans Bengali", "Hind Siliguri", sans-serif;
+  --font-serif: Georgia, "Iowan Old Style", "Times New Roman", "Noto Serif Bengali",
+    serif;
+}
+
+html {
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Bengali headlines need a touch more line-height than Latin ones */
+.headline {
+  font-family: var(--font-serif);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* thin, unobtrusive scrollbars for the chip rows */
+.chip-row {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.chip-row::-webkit-scrollbar {
+  height: 6px;
+}
+.chip-row::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+.live-dot {
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-up {
+  animation: slide-up 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .live-dot, .slide-up { transition: none; animation: none; }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "news-monitor-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker that polls RSS feeds every 30 minutes and stores new headlines in Supabase",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dry-run": "tsx scripts/dry-run.ts",
+    "dry-run:all": "tsx scripts/dry-run.ts --all",
+    "bench": "tsx scripts/bench.ts",
+    "bench:shards": "tsx scripts/bench.ts --all-shards"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0",
+    "wrangler": "^4.0.0"
+  }
+}

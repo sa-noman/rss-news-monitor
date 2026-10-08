@@ -1,0 +1,30 @@
+# Cloudflare Worker configuration
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+#
+# Secrets are NOT stored here. Create them once with:
+#   npx wrangler secret put SUPABASE_URL
+#   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#   npx wrangler secret put ADMIN_TOKEN
+
+name = "news-monitor-worker"
+main = "src/index.ts"
+compatibility_date = "2025-08-01"
+workers_dev = true
+
+# Monitoring schedule — every 30 minutes (Asia/Dhaka friendly: :00 and :30)
+[triggers]
+crons = ["*/30 * * * *"]
+
+# Non-secret configuration only
+[vars]
+ITEMS_PER_FEED = "25"
+FEED_SHARDS = "30"
+FEED_SHARD_INTERVAL_MINUTES = "1"
+OG_IMAGE_SCRAPE = "false"
+
+# Structured logs are visible in Workers Logs / `npx wrangler tail`
+[observability]
+enabled = true
+
+# Local development: `npx wrangler dev` reads secrets from .dev.vars
+# (create worker/.dev.vars locally — it is gitignored)
