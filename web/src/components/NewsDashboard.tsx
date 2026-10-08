@@ -41,6 +41,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
   const [relatedError, setRelatedError] = useState(false);
   const bn = UI_LANG === 'bn';
   const [jumpReady, setJumpReady] = useState(false);
+  const [expandedSources, setExpandedSources] = useState(false);
 
   useEffect(() => {
     if (!focusedSource) return;
@@ -197,8 +198,8 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
             </div>
             <Link href="/sources" aria-label="View all source status">↗</Link>
           </div>
-          <div className="monitor-sidebar-list">
-            {uniqueSources.slice(0, 10).map((source) => (
+          <div id="monitor-sidebar-source-list" className={"monitor-sidebar-list " + (expandedSources ? "monitor-sidebar-list-expanded" : "")}>
+            {(expandedSources ? uniqueSources : uniqueSources.slice(0, 10)).map((source) => (
               <div className={"monitor-sidebar-source " + (focusedSource === source.name ? "monitor-source-selected" : "")} key={source.name}>
                 {source.name.startsWith('Haaretz') ? (
                   <span className="publisher-logo" title="Haaretz" aria-label="Haaretz" style={{ position: "relative" }}>
@@ -224,7 +225,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
               </div>
             ))}
           </div>
-          <Link href="/sources" className="monitor-all-sources">{bn ? 'সব সোর্সের অবস্থা দেখুন' : 'View all source health'} →</Link>
+          <button type="button" className="monitor-all-sources monitor-source-expand" aria-expanded={expandedSources} aria-controls="monitor-sidebar-source-list" onClick={() => setExpandedSources(value => !value)}>{expandedSources ? (bn ? "কম সোর্স দেখুন" : "Show fewer sources") : (bn ? "সব সোর্স দেখুন" : "View all sources")} <span aria-hidden>{expandedSources ? "↑" : "↓"}</span></button>
           <div className="monitor-sidebar-note">
             <strong>{bn ? 'মনিটরিং' : 'Monitoring'}</strong>
             <span>{bn ? 'সর্বশেষ সংবাদ ও সোর্সের অবস্থা' : 'Latest headlines and source status'}</span>
