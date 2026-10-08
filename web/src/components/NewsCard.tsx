@@ -9,6 +9,7 @@ import { PublisherLogo } from './PublisherLogo';
 export interface MonitorCardProps {
   item: NewsItem;
   featured?: boolean;
+  focused?: boolean;
   bookmarked?: boolean;
   relatedCount?: number;
   onBookmark?: (item: NewsItem) => void;
@@ -16,7 +17,7 @@ export interface MonitorCardProps {
 }
 
 export function NewsCard({
-  item, featured = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
+  item, featured = false, focused = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
 }: MonitorCardProps) {
   const [brokenImage, setBrokenImage] = useState(false);
   const [foundImage, setFoundImage] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export function NewsCard({
   const imageAvailable = Boolean(resolvedImage && !brokenImage);
 
   return (
-    <article className={'monitor-card card ' + (featured ? 'monitor-featured ' : '')}>
+    <article id={focused ? 'latest-source-story' : undefined} className={'monitor-card card ' + (featured ? 'monitor-featured ' : '') + (focused ? ' monitor-source-focused' : '')}>
       <div ref={mediaRef} className="monitor-media" style={{ backgroundColor: color + '17' }}>
         {imageAvailable ? (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-image-link" aria-label={item.title}>
