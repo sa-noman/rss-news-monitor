@@ -9,6 +9,7 @@ import { PublisherLogo } from './PublisherLogo';
 export interface MonitorCardProps {
   item: NewsItem;
   featured?: boolean;
+  priority?: boolean;
   focused?: boolean;
   bookmarked?: boolean;
   relatedCount?: number;
@@ -17,7 +18,7 @@ export interface MonitorCardProps {
 }
 
 export function NewsCard({
-  item, featured = false, focused = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
+  item, featured = false, priority = false, focused = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
 }: MonitorCardProps) {
   const [brokenImage, setBrokenImage] = useState(false);
   const [foundImage, setFoundImage] = useState<string | null>(null);
@@ -62,7 +63,7 @@ export function NewsCard({
         {imageAvailable ? (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-image-link" aria-label={item.title}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={resolvedImage} className="monitor-photo" src={resolvedImage!} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
+            <img key={resolvedImage} className="monitor-photo" src={resolvedImage!} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "low"} decoding="async" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
           </a>
         ) : (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-logo-fallback" aria-label={item.title}>
