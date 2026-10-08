@@ -631,3 +631,37 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 @media(prefers-reduced-motion:reduce){
   .monitor-source-sidebar #monitor-sidebar-source-list{transition:none}
 }
+
+/* Desktop Grid polish only: balanced card widths with more breathing room. */
+@media (min-width:768px) {
+  .view-grid .monitor-articles {
+    max-width:1220px;
+    margin-inline:auto;
+  }
+  .view-grid .monitor-feed {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    column-gap:22px;
+    row-gap:23px;
+  }
+  .view-grid .monitor-card.monitor-featured {
+    grid-column:span 1;
+  }
+  .view-grid .monitor-card,
+  .view-grid .monitor-card.monitor-featured {
+    min-width:0;
+  }
+  .view-grid .monitor-media,
+  .view-grid .monitor-featured .monitor-media {
+    height:176px;
+  }
+  .view-grid .monitor-featured .monitor-title {
+    font-size:19px;
+    line-height:1.36;
+  }
+  .view-grid .monitor-card-content {
+    padding:17px 17px 16px;
+  }
+}
+@media (min-width:768px) and (max-width:1100px) {
+  .view-grid .monitor-feed {grid-template-columns:repeat(2,minmax(0,1fr));gap:19px}
+}
