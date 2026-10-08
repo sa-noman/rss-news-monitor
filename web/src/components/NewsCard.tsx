@@ -71,8 +71,13 @@ export function NewsCard({
             <span>{item.source_name}</span>
           </a>
         )}
-        <span className="monitor-category" style={{ backgroundColor: color }}>
-          {categoryLabel(item.category)}
+        <span className="monitor-category" style={{ backgroundColor: color }} title={categoryLabel(item.category)}>
+          <span className="monitor-category-label-full">{categoryLabel(item.category)}</span>
+          <span className="monitor-category-label-mobile">{item.category === 'Economy & Business'
+            ? (categoryLabel(item.category) === 'Economy & Business' ? 'Economy' : 'অর্থনীতি')
+            : item.category === 'Culture & Entertainment'
+            ? (categoryLabel(item.category) === 'Culture & Entertainment' ? 'Culture' : 'সংস্কৃতি')
+            : categoryLabel(item.category)}</span>
         </span>
         {onBookmark ? (
           <button className={'bookmark-button ' + (bookmarked ? 'is-bookmarked' : '')}
