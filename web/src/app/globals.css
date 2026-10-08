@@ -435,3 +435,17 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 .monitor-category-drawer .monitor-chip{padding:13px 15px;min-height:43px;font-size:13px}
 @keyframes category-drawer-in{from{transform:translateX(-15px);opacity:.7}to{transform:translateX(0);opacity:1}}
 @media(max-width:767px){.monitor-category-drawer{width:min(340px,91vw);padding:19px 16px}.monitor-category-drawer-header h2{font-size:22px}}
+
+/* Header-mounted menu + document-level drawer, avoiding sticky-header stacking contexts. */
+.monitor-category-header-slot{flex:0 0 auto;display:flex;align-items:center}
+.monitor-category-header-slot .monitor-category-menu{margin:0;position:static;z-index:auto}
+.monitor-category-header-slot .monitor-category-toggle{min-width:0;gap:9px;padding:9px 12px;border-radius:8px;box-shadow:none;white-space:nowrap;position:static}
+.monitor-category-header-slot .monitor-category-current{max-width:95px}
+.monitor-category-backdrop{z-index:1000}
+.monitor-category-drawer{z-index:1001}
+@media(max-width:767px){
+.monitor-category-header-slot .monitor-category-toggle{min-width:0;padding:8px 9px;gap:0}
+.monitor-category-header-slot .monitor-category-toggle>span:not(.monitor-category-menu-icon){display:none}
+.monitor-category-header-slot .monitor-category-menu-icon{font-size:20px}
+.monitor-category-header-slot{margin-right:2px}
+}
