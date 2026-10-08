@@ -138,6 +138,39 @@ async function economistFeedImage(articleUrl: string): Promise<string | null> {
   return null;
 }
 
+/**
+ * Manual rights-reviewed Washington Post artwork only. This JSON configuration
+ * is deliberately empty by default. Never equate an accessible RSS/OG URL with
+ * permission to display a full-size photograph.
+ *
+ * WP_APPROVED_IMAGES_JSON:
+ * {"https://www.washingtonpost.com/...": {
+ *   "url":"https://licensed-cdn.example.com/photo.jpg",
+ *   "permission":"licensed", "credit":"Photographer / Licensor",
+ *   "evidence":"License record or approval reference"
+ * }}
+ */
+function approvedWashingtonPostImage(articleUrl: string): string | null {
+  const raw = process.env.WP_APPROVED_IMAGES_JSON;
+  if (!raw || raw.length > 200_000) return null;
+  try {
+    const config = JSON.parse(raw) as Record<string, {
+      url?: string; permission?: string; credit?: string; evidence?: string;
+    }>;
+    const normalize = (value: string) => {
+      const u = new URL(value);
+      return u.origin + u.pathname.replace(/\/+$/, '');
+    };
+    const entry = Object.entries(config).find(([key]) => {
+      try { return normalize(key) === normalize(articleUrl); } catch { return false; }
+    })?.[1];
+    if (!entry || entry.permission !== 'licensed' || !entry.credit?.trim() || !entry.evidence?.trim()) return null;
+    const img = new URL(entry.url ?? '');
+    if (img.protocol !== 'https:' || img.username || img.password || img.port) return null;
+    return img.toString();
+  } catch { return null; }
+}
+
 async function htmlHead(response: Response): Promise<string> {
   const reader = response.body?.getReader();
   if (!reader) return '';
@@ -162,8 +195,14 @@ export async function GET(req: NextRequest) {
   try {
     const {data,error} = await supabase.from('news').select('link,image_url').eq('id',id).maybeSingle();
     if (error || !data) return NextResponse.json({image:null});
-    if (data.image_url) return NextResponse.json({image:data.image_url});
     if (!trusted(data.link)) return NextResponse.json({image:null});
+    // Post photos are rights-managed. Only serve individually approved artwork;
+    // RSS, stored image_url and freely reachable OG URLs are not licenses.
+    if (new URL(data.link).hostname.endsWith('washingtonpost.com')) {
+      const image = approvedWashingtonPostImage(data.link);
+      return NextResponse.json({ image }, { headers: { 'Cache-Control': 'private, no-store' } });
+    }
+    if (data.image_url) return NextResponse.json({image:data.image_url});
     const isAnadolu = new URL(data.link).hostname.endsWith('aa.com.tr');
     if (isAnadolu) {
       const rssImage = await anadoluFeedImage(data.link);
