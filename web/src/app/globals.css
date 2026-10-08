@@ -539,3 +539,12 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 /* Keep fallback initials centered, entirely visible, and independent of headline length. */
 .publisher-logo-large .publisher-sharp-wordmark{display:flex;align-items:center;justify-content:center;overflow:hidden;overflow-wrap:normal;word-break:normal;white-space:nowrap;width:100%;height:100%;padding:6px;font-size:clamp(23px,3vw,39px);font-weight:800;line-height:1;letter-spacing:-.04em}
 @media(max-width:767px){.publisher-logo-large .publisher-sharp-wordmark{font-size:24px;padding:4px}}
+
+/* ONLY the enlarged logo inside a news-card media fallback.
+   Sidebar publisher logos are intentionally left untouched. */
+.monitor-card .monitor-logo-fallback .publisher-logo-large{width:108px;height:108px;border-radius:15px}
+.monitor-card .monitor-logo-fallback .publisher-logo-large .publisher-sharp-wordmark{font-size:clamp(21px,2.5vw,33px)}
+@media(max-width:767px){
+  .monitor-card .monitor-logo-fallback .publisher-logo-large{width:63px;height:63px;border-radius:10px}
+  .monitor-card .monitor-logo-fallback .publisher-logo-large .publisher-sharp-wordmark{font-size:21px}
+}
