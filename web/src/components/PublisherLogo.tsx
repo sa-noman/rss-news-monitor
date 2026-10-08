@@ -18,7 +18,7 @@ export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: Pu
   const favicon = domain ? 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128' : '';
   // Small favicons look blurred when enlarged. Use a sharp text treatment
   // if no large logo exists; never pretend a generated logo is official.
-  const showImage = Boolean(domain && !large && stage < 2);
+  const showImage = Boolean(domain && stage < 2);
   const src = stage === 0 ? touchIcon : favicon;
   return (
     <span className={'publisher-logo ' + (large ? 'publisher-logo-large' : '')} title={name} aria-label={name}>
@@ -31,7 +31,7 @@ export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: Pu
           loading="lazy"
           referrerPolicy="no-referrer"
           onLoad={event => {
-            if (event.currentTarget.naturalWidth < 32 || event.currentTarget.naturalHeight < 32) setStage(2);
+            if (event.currentTarget.naturalWidth < 48 || event.currentTarget.naturalHeight < 48) setStage(2);
           }}
           onError={() => setStage(large ? 2 : stage + 1)}
         />
