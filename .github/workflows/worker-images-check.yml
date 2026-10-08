@@ -1,0 +1,19 @@
+name: Worker image extraction checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [fix/original-article-images-20261008]
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - run: npm ci --prefix worker
+      - run: npm run typecheck --prefix worker
+      - run: npm test --prefix worker
