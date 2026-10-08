@@ -291,3 +291,99 @@ select.monitor-select {appearance:auto}
 @media(prefers-reduced-motion:reduce) {
   .monitor-live-live .monitor-live-circle,.monitor-photo,.coverage-drawer,.slide-up {animation:none;transition:none}
 }
+
+
+/* News Monitor v2: restrained typographic scale and aligned surfaces. */
+:root{--monitor-header-tint:#edeae5}
+:root[data-theme="dark"]{--monitor-header-tint:#111f31}
+body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,sans-serif}
+.headline,.monitor-title{font-family:"Source Serif 4",Georgia,"Noto Serif Bengali",serif}
+.monitor-site-header{background:var(--monitor-header-tint);border-bottom:1px solid var(--border);box-shadow:0 3px 12px rgba(25,25,25,.035);backdrop-filter:none}
+.monitor-header-inner{max-width:1440px;padding:0 32px}
+.monitor-brand-row{min-height:70px;gap:32px}
+.monitor-brand{font-size:27px;line-height:1.2;letter-spacing:-.45px}
+.monitor-top-nav{font-size:13px;gap:25px}
+.monitor-header-actions{gap:15px}
+.monitor-source-number{font-size:12px}
+.monitor-header-secondary{padding:0 0 17px;gap:22px;align-items:center}
+.monitor-header-secondary p{font-size:13px;line-height:1.45}
+.monitor-search{width:min(445px,100%)}
+.monitor-search input{height:41px;font-size:13px;border-radius:9px}
+.monitor-search button{height:41px;border-radius:9px;font-size:13px}
+.theme-switch{font-size:12px;padding:9px 12px}
+.monitor-page-intro{margin-top:10px;margin-bottom:23px}
+.monitor-page-intro h1{font-size:32px}
+.monitor-page-intro p{font-size:13px}
+.monitor-columns{grid-template-columns:minmax(0,1fr) 305px;gap:22px}
+.monitor-source-sidebar{padding:19px;top:154px;border-radius:13px}
+.monitor-sidebar-heading h3{font-size:16px}
+.monitor-sidebar-heading p{font-size:12px}
+.monitor-sidebar-source{padding:13px 0;gap:12px}
+.monitor-sidebar-source .publisher-logo{width:43px;height:43px;border-radius:10px}
+.monitor-sidebar-source .publisher-logo img{max-width:90%;max-height:90%}
+.monitor-sidebar-source-text strong{font-size:13px}
+.monitor-sidebar-source-text small{font-size:11px}
+.monitor-source-active{width:8px;height:8px}
+.monitor-all-sources{font-size:12px}
+.monitor-sidebar-note span{font-size:12px}
+.monitor-feed{gap:14px}
+.monitor-card{min-height:205px}
+.monitor-media{width:255px;min-height:202px}
+.monitor-card-content{padding:20px;gap:11px}
+.monitor-title{font-size:21px;font-weight:600;line-height:1.32;letter-spacing:-.15px}
+.monitor-summary{font-size:14px;line-height:1.64}
+.monitor-source-name{font-size:13px}
+.monitor-source-meta time{font-size:12px}
+.monitor-card-footer{padding-top:13px}
+.monitor-card-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.monitor-read-link{font-size:11px}
+.related-trigger{font-size:11px;padding:7px 10px}
+.monitor-feed-title h2{font-size:16px}
+.monitor-chip{font-size:13px}
+.monitor-logo-fallback{gap:11px}
+.monitor-logo-fallback .publisher-logo-large{height:122px;width:122px;border-radius:18px;box-shadow:0 3px 12px #0000000b}
+.monitor-logo-fallback .publisher-logo-large img{max-width:90%;max-height:90%;width:90%;height:90%;object-fit:contain}
+.monitor-logo-fallback .publisher-logo-large .publisher-monogram{font-size:40px}
+.monitor-logo-fallback>span:last-child{font-size:13px}
+.active-filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 18px}
+.active-filter-label{font-size:12px;color:var(--muted);font-weight:600}
+.active-filter-pill{display:inline-flex;gap:9px;align-items:center;padding:7px 11px;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:22px}
+.active-filter-pill span{font-size:17px;line-height:1;color:var(--accent)}
+.active-filter-pill:hover{border-color:var(--accent)}
+.active-filter-clear{font-size:12px;font-weight:700;color:var(--accent);padding:6px 4px}
+.coverage-drawer h3{font-size:25px}
+.coverage-reports{border-left:1px solid var(--border);margin-left:6px;padding-left:17px}
+.coverage-report{position:relative}
+.coverage-report:before{content:'';position:absolute;width:11px;height:11px;left:-23px;top:18px;background:var(--accent);border-radius:50%;border:3px solid var(--surface)}
+.coverage-no-matches{font-size:13px;color:var(--muted);padding:16px 0}
+.view-grid .monitor-title{font-size:19px}
+.view-grid .monitor-featured .monitor-title{font-size:27px}
+@media(max-width:1100px){.monitor-columns{grid-template-columns:minmax(0,1fr) 270px;gap:15px}.monitor-header-inner{padding:0 24px}.monitor-media{width:215px}}
+@media(max-width:800px){.monitor-columns{display:block}.monitor-source-sidebar{display:none}.monitor-header-inner{padding:0 16px}}
+@media(max-width:767px){
+.monitor-header-inner{padding:0 15px}
+.monitor-brand-row{min-height:60px;gap:10px}
+.monitor-brand{font-size:22px}
+.monitor-header-secondary{padding:2px 0 15px;gap:10px}
+.monitor-header-secondary p{font-size:11px}
+.monitor-page-intro h1{font-size:25px}
+.monitor-page-intro p{font-size:12px}
+.monitor-media,.view-grid .monitor-media,.view-grid .monitor-featured .monitor-media{width:125px;min-height:166px}
+.monitor-card,.view-grid .monitor-card,.view-grid .monitor-featured{min-height:166px}
+.monitor-card-content,.view-grid .monitor-card-content{padding:11px;gap:8px}
+.monitor-title,.view-grid .monitor-title,.view-grid .monitor-featured .monitor-title{font-size:14px;line-height:1.38}
+.monitor-source-name{font-size:10px}
+.monitor-source-meta time{font-size:10px}
+.monitor-card-footer{padding-top:8px}
+.monitor-card-actions{gap:5px}
+.related-trigger{font-size:9px;padding:5px 7px}
+.monitor-logo-fallback .publisher-logo-large{width:68px;height:68px;border-radius:11px}
+.monitor-logo-fallback .publisher-logo-large .publisher-monogram{font-size:24px}
+.monitor-logo-fallback>span:last-child{font-size:10px}
+.active-filter-row{margin:0 0 16px}
+}
+@media(max-width:370px){
+.monitor-media,.view-grid .monitor-media,.view-grid .monitor-featured .monitor-media{width:113px}
+.monitor-title,.view-grid .monitor-title,.view-grid .monitor-featured .monitor-title{font-size:12.5px}
+.monitor-logo-fallback .publisher-logo-large{width:59px;height:59px}
+}
