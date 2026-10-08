@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
         signal:controller.signal,
         redirect:'follow',
         headers: {'Accept':'text/html,application/xhtml+xml','Accept-Language':'en-US,en;q=0.9','User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'},
-        next:{revalidate:3600}
+        ...(isAnadolu ? { cache:'no-store' as const } : { next:{revalidate:3600} })
       });
       if (!response.ok || ((response.headers.get('content-type')??'').length > 0 && !(response.headers.get('content-type')??'').includes('text/html'))) {
         return NextResponse.json({image:null});
