@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { FeedSourceRow, NewsItem } from '@/lib/types';
 import { fullDate, relativeTime } from '@/lib/format';
@@ -42,6 +42,22 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
   const bn = UI_LANG === 'bn';
   const [jumpReady, setJumpReady] = useState(false);
   const [expandedSources, setExpandedSources] = useState(false);
+  const sourceListRef = useRef<HTMLDivElement>(null);
+  const [sourceListHeight, setSourceListHeight] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const list = sourceListRef.current;
+    if (!list) return;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>('.monitor-sidebar-source'));
+    if (!rows.length) return;
+    const visibleCount = Math.min(10, rows.length);
+    const firstTenHeight = rows.slice(0, visibleCount).reduce((sum, row) => sum + row.getBoundingClientRect().height, 0);
+    const fullHeight = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0);
+    // Expansion always reveals additional rows below the first ten.
+    // If there are many, keep four extra rows in view and scroll within the sidebar.
+    const expandedHeight = Math.min(fullHeight, firstTenHeight + (firstTenHeight / visibleCount) * 4);
+    setSourceListHeight(Math.ceil(expandedSources ? expandedHeight : firstTenHeight));
+  }, [expandedSources, sources]);
 
   useEffect(() => {
     if (!focusedSource) return;
@@ -198,7 +214,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
             </div>
             <Link href="/sources" aria-label="View all source status">↗</Link>
           </div>
-          <div id="monitor-sidebar-source-list" className={"monitor-sidebar-list " + (expandedSources ? "monitor-sidebar-list-expanded" : "")}>
+          <div ref={sourceListRef} id="monitor-sidebar-source-list" style={sourceListHeight !== null ? { height: sourceListHeight } : undefined} className={"monitor-sidebar-list " + (expandedSources ? "monitor-sidebar-list-expanded" : "")}>
             {(expandedSources ? uniqueSources : uniqueSources.slice(0, 10)).map((source) => (
               <div className={"monitor-sidebar-source " + (focusedSource === source.name ? "monitor-source-selected" : "")} key={source.name}>
                 {source.name.startsWith('Haaretz') ? (
