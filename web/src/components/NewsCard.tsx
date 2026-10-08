@@ -63,7 +63,7 @@ export function NewsCard({
         {imageAvailable ? (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-image-link" aria-label={item.title}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={resolvedImage} className="monitor-photo" src={resolvedImage!} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "low"} decoding="async" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
+            <img key={resolvedImage} className="monitor-photo" src={resolvedImage!} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
           </a>
         ) : (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-logo-fallback" aria-label={item.title}>
