@@ -21,6 +21,7 @@ export function NewsCard({
   const [brokenImage, setBrokenImage] = useState(false);
   const [foundImage, setFoundImage] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  useEffect(() => { setBrokenImage(false); setFoundImage(null); setVisible(false); }, [item.id]);
   const mediaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (item.image_url) return;
@@ -48,7 +49,9 @@ export function NewsCard({
   const color = categoryColor(item.category);
   const publishDate = item.published_at ?? item.created_at;
   const timeText = relativeTime(publishDate);
-  const resolvedImage = item.image_url || foundImage;
+  // Always prefer the original image already collected from RSS.
+  // Only request a missing photo from the publisher when RSS supplied none.
+  const resolvedImage = (item.image_url?.trim() || foundImage) ?? null;
   const imageAvailable = Boolean(resolvedImage && !brokenImage);
 
   return (
@@ -57,7 +60,7 @@ export function NewsCard({
         {imageAvailable ? (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-image-link" aria-label={item.title}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="monitor-photo" src={resolvedImage!} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
+            <img key={resolvedImage} className="monitor-photo" src={resolvedImage!} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
           </a>
         ) : (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-logo-fallback" aria-label={item.title}>
