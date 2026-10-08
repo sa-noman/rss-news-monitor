@@ -561,3 +561,15 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   100%{transform:perspective(1200px) rotateX(0) translateY(0);opacity:1}
 }
 @media(prefers-reduced-motion:reduce){.monitor-source-focused{animation:none}.monitor-source-sidebar .monitor-source-jump{transition:none}}
+
+/* Selected source navigation: soft highlight, no layout shift or card rotation. */
+.monitor-source-sidebar .monitor-source-selected{background:color-mix(in srgb,#3575d0 8%,var(--surface));border-radius:9px;padding-left:9px;padding-right:9px;margin-left:-9px;margin-right:-9px;box-shadow:inset 3px 0 #3979ce}
+.monitor-source-sidebar .monitor-source-selected .monitor-source-jump{color:#2362b6}
+.monitor-source-sidebar .monitor-source-selected .monitor-source-jump:hover{transform:none}
+.monitor-source-focused{animation:source-focus-glow 1.15s ease-out both;transform:none!important}
+@keyframes source-focus-glow{
+  0%{box-shadow:0 0 0 0 rgba(48,120,210,.6),inset 0 0 0 2px rgba(48,120,210,.8)}
+  45%{box-shadow:0 0 0 5px rgba(48,120,210,.18),inset 0 0 0 2px rgba(48,120,210,.35)}
+  100%{box-shadow:0 0 0 0 rgba(48,120,210,0),inset 0 0 0 1px rgba(48,120,210,.2)}
+}
+@media(prefers-reduced-motion:reduce){.monitor-source-focused{animation:none;outline:2px solid #3979ce}}
