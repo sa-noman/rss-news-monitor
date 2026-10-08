@@ -1125,3 +1125,58 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
     max-width:calc(100% - 73px);
   }
 }
+
+/* Final mobile-only density adjustment: let the headline + source determine
+   article height rather than stretching it to the photo's old 150px minimum. */
+@media (max-width:767px) {
+  .monitor-card,
+  .view-grid .monitor-card,
+  .view-grid .monitor-featured{
+    min-height:105px;
+    height:auto;
+    align-items:stretch;
+  }
+  .monitor-media,
+  .view-grid .monitor-media,
+  .view-grid .monitor-featured .monitor-media{
+    min-height:105px;
+    height:auto;
+  }
+  .monitor-card-content,
+  .view-grid .monitor-card-content{
+    padding:9px 10px;
+    gap:5px;
+    justify-content:flex-start;
+  }
+  .monitor-card-footer{
+    margin-top:5px;
+    padding-top:6px;
+    gap:5px;
+  }
+  /* A slim input row with full usable width for keyboard and touch. */
+  .monitor-site-header .monitor-search-filter-group .monitor-search input,
+  .monitor-site-header .monitor-search-filter-group .monitor-search button{
+    height:35px;
+    min-height:35px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-select,
+  .monitor-site-header .monitor-header-filter-controls select.monitor-select,
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter>.monitor-select{
+    height:33px;
+    min-height:33px;
+  }
+  .monitor-site-header .monitor-header-secondary{padding:8px 0 9px!important}
+  .monitor-site-header .monitor-search-filter-group{gap:6px}
+}
+@media (max-width:370px) {
+  .monitor-card,
+  .view-grid .monitor-card,
+  .view-grid .monitor-featured,
+  .monitor-media,
+  .view-grid .monitor-media,
+  .view-grid .monitor-featured .monitor-media{
+    min-height:102px;
+  }
+  .monitor-card-content,
+  .view-grid .monitor-card-content{padding:8px 8px}
+}
