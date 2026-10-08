@@ -548,3 +548,16 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   .monitor-card .monitor-logo-fallback .publisher-logo-large{width:63px;height:63px;border-radius:10px}
   .monitor-card .monitor-logo-fallback .publisher-logo-large .publisher-sharp-wordmark{font-size:21px}
 }
+
+/* Source-monitoring jump: gentle card flip/reveal on the latest article. */
+.monitor-source-sidebar .monitor-source-jump{font-weight:700;font-size:13px;color:var(--text);text-decoration:none;display:inline-block;transition:color .16s ease,transform .16s ease}
+.monitor-source-sidebar .monitor-source-jump:hover{color:var(--accent);transform:translateX(3px)}
+.monitor-source-sidebar .monitor-source-jump:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+#latest-source-story{scroll-margin-top:125px}
+.monitor-source-focused{animation:monitor-source-flip .85s cubic-bezier(.2,.75,.2,1) both;transform-origin:center center;backface-visibility:hidden}
+@keyframes monitor-source-flip{
+  0%{transform:perspective(1200px) rotateX(-10deg) translateY(14px);opacity:.68}
+  65%{transform:perspective(1200px) rotateX(2deg) translateY(0);opacity:1}
+  100%{transform:perspective(1200px) rotateX(0) translateY(0);opacity:1}
+}
+@media(prefers-reduced-motion:reduce){.monitor-source-focused{animation:none}.monitor-source-sidebar .monitor-source-jump{transition:none}}
