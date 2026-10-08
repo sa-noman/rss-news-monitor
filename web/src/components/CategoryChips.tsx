@@ -45,7 +45,7 @@ export function CategoryChips({ active, stats, query }: {
           <Link key={chip.key} href={buildHref(query, chip.key)}
             aria-current={isActive ? 'page' : undefined}
             className={'monitor-chip ' + (chip.color ? 'is-colored ' : 'is-all ') + (isActive ? 'is-selected' : '')}
-            style={chip.color ? { backgroundColor: chip.color, borderColor: chip.color, color: '#fff' } : undefined}
+            style={chip.color ? { backgroundColor: `color-mix(in srgb, ${chip.color} 10%, var(--surface))`, borderColor: `color-mix(in srgb, ${chip.color} 24%, var(--border))`, color: chip.color } : undefined}
           >
             <span>{chip.label}</span>
             {typeof chip.count === 'number' ? <span className="monitor-chip-count">{chip.count}</span> : null}
