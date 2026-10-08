@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const STOP = new Set('the and for with from that this after amid over about says said into will have has are was were new news more than their its his her at in on of to a an as by or is us uk'.split(' '));
 function normalized(title: string) {
-  return title.toLocaleLowerCase().normalize('NFKC').replace(/[^\\p{L}\\p{N}\\s]/gu, ' ').replace(/\\s+/g, ' ').trim();
+  return title.toLocaleLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ').trim();
 }
 function terms(title: string) {
   return new Set(normalized(title).split(' ').filter(word => word.length >= 4 && !STOP.has(word)));
