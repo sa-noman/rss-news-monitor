@@ -177,13 +177,13 @@ export function NewsDashboard({ items, sources, children }: Props) {
             {uniqueSources.slice(0, 10).map((source) => (
               <div className="monitor-sidebar-source" key={source.name}>
                 {source.name.startsWith('Haaretz') ? (
-                  <span className="publisher-logo" title="Haaretz" aria-label="Haaretz">
+                  <span className="publisher-logo" title="Haaretz" aria-label="Haaretz" style={{ position: "relative" }}>
                     {/* Wikimedia Commons hosts Haaretz's square 2023 logo in vector format. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Logo_Haaretz_2023_blue.svg"
-                      alt="Haaretz" loading="lazy" referrerPolicy="no-referrer"
+                      alt="Haaretz" loading="lazy" referrerPolicy="no-referrer" style={{ position: "relative", zIndex: 1 }}
                       onError={event => { event.currentTarget.style.display = "none"; }} />
-                    <span className="publisher-monogram" aria-hidden="true" style={{position:"absolute",zIndex:-1}}>H</span>
+                    <span className="publisher-monogram" aria-hidden="true" style={{ position: "absolute", zIndex: 0 }}>H</span>
                   </span>
                 ) : (
                   <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
