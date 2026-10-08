@@ -38,7 +38,14 @@ export function CategoryChips({ active, stats, query }: {
   ];
 
   return (
-    <nav aria-label={dict.filterByCategory} className="chip-row monitor-chips">
+    <details className="monitor-category-menu">
+      <summary className="monitor-category-toggle" aria-label={dict.filterByCategory}>
+        <span className="monitor-category-menu-icon" aria-hidden>☰</span>
+        <span>{dict.filterByCategory}</span>
+        <span className="monitor-category-current">{active === "All" ? dict.allCategories : categoryLabel(active)}</span>
+        <span aria-hidden>⌄</span>
+      </summary>
+      <nav aria-label={dict.filterByCategory} className="monitor-category-options">
       {chips.map((chip) => {
         const isActive = chip.key === active || (chip.key === 'All' && (!active || active === 'All'));
         return (
@@ -52,6 +59,7 @@ export function CategoryChips({ active, stats, query }: {
           </Link>
         );
       })}
-    </nav>
+      </nav>
+    </details>
   );
 }
