@@ -1,32 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { t } from '@/lib/i18n';
 
-/** GET search form. Keeps the URL's existing filters when submitting. */
-export function SearchBar({ defaultValue, hidden }: {
+/** GET search form. Keep live URL filters across client navigation. */
+export function SearchBar({ defaultValue }: {
   defaultValue: string;
   hidden?: { category?: string; source?: string };
 }) {
   const dict = t();
-  const [query, setQuery] = useState(defaultValue);
-  const [existing, setExisting] = useState<Record<string, string>>({});
+  const params = useSearchParams();
+  const currentQuery = params.get('q') ?? defaultValue;
+  const [query, setQuery] = useState(currentQuery);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setQuery(params.get('q') ?? defaultValue);
-    const previous: Record<string, string> = {};
-    for (const key of ['category', 'source', 'date', 'from', 'to']) {
-      const value = params.get(key);
-      if (value) previous[key] = value;
-    }
-    setExisting(previous);
-  }, [defaultValue]);
+  useEffect(() => { setQuery(currentQuery); }, [currentQuery]);
 
-  const kept = { ...hidden, ...existing };
+  const preserved = ['category', 'source', 'date', 'from', 'to']
+    .map((key) => ({ key, value: params.get(key) }))
+    .filter((pair): pair is { key: string; value: string } => Boolean(pair.value));
+
   return (
     <form action="/" method="get" role="search" className="monitor-search">
-      {Object.entries(kept).map(([key, value]) => value ? <input key={key} type="hidden" name={key} value={value} /> : null)}
+      {preserved.map(({ key, value }) => <input key={key} type="hidden" name={key} value={value} />)}
       <input type="search" name="q" value={query} onChange={(event) => setQuery(event.target.value)}
         placeholder={dict.searchPlaceholder} aria-label={dict.search} />
       <button type="submit">{dict.search}</button>
