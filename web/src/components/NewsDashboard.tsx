@@ -185,6 +185,10 @@ export function NewsDashboard({ items, sources, children }: Props) {
                       onError={event => { event.currentTarget.style.display = "none"; }} />
                     <span className="publisher-monogram" aria-hidden="true" style={{ position: "absolute", zIndex: 0 }}>H</span>
                   </span>
+                ) : source.name === 'Middle East Eye' ? (
+                  <span className="publisher-logo" title="Middle East Eye" aria-label="Middle East Eye" style={{ position: 'relative', background: '#422364', color: '#fff' }}>
+                    <span aria-hidden="true" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1 }}>MEE</span>
+                  </span>
                 ) : (
                   <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
                 )}
