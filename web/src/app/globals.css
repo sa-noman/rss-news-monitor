@@ -1071,3 +1071,57 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   .monitor-source-name{font-size:9px}
   .related-trigger{font-size:8px;padding-inline:5px}
 }
+
+/* Small-screen exceptions: keep the header usable when new stories arrive
+   or when a custom date range is selected. No desktop selectors. */
+@media (max-width:767px) {
+  .monitor-site-header .monitor-realtime .monitor-new-pill{
+    min-width:39px;
+    width:auto;
+    max-width:52px;
+    min-height:30px;
+    gap:3px;
+    padding:3px 5px;
+    border-radius:8px;
+  }
+  .monitor-site-header .monitor-realtime .monitor-update-copy{display:none}
+  .monitor-site-header .monitor-realtime .monitor-update-arrow{
+    display:inline;
+    font-size:13px;
+  }
+  .monitor-site-header .monitor-realtime .monitor-update-count{
+    min-width:19px;
+    height:19px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .date-filter:has(.custom-range){
+    grid-column:1/-1;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:7px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .custom-range{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    width:100%;
+    max-width:100%;
+  }
+  .monitor-site-header .monitor-header-filter-controls .custom-range input{
+    min-width:0;
+    width:100%;
+    max-width:none;
+  }
+  .monitor-site-header .monitor-header-filter-controls .custom-range button{
+    grid-column:1/-1;
+    width:100%;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter summary{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter summary strong{
+    max-width:calc(100% - 73px);
+  }
+}
