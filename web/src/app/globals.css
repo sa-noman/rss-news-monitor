@@ -514,3 +514,18 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 .monitor-site-header.monitor-toolbar-hidden .monitor-header-secondary{max-height:none!important;opacity:0;visibility:hidden;transform:translateY(-12px);padding-top:12px;padding-bottom:15px;pointer-events:none}
 @media(max-width:767px){.monitor-site-header .monitor-header-secondary,.monitor-site-header.monitor-toolbar-hidden .monitor-header-secondary{padding-top:10px;padding-bottom:13px}}
 @media(prefers-reduced-motion:reduce){.monitor-site-header .monitor-header-secondary{transition:none!important}}
+
+/* Final compact header: no empty toolbar gap, muted slate-blue header color. */
+.monitor-site-header{background:#dce5ee!important;border-top-color:#b9cbdc!important;border-bottom-color:#b6c7d8!important}
+:root[data-theme="dark"] .monitor-site-header{background:#192b42!important;border-top-color:#304760!important;border-bottom-color:#304760!important}
+.monitor-site-header .monitor-header-secondary{display:block;max-height:260px!important;opacity:1;visibility:visible;overflow:visible!important;transform:none!important;padding:12px 0 15px;transition:none!important}
+.monitor-site-header.monitor-toolbar-hidden .monitor-header-secondary{max-height:0!important;opacity:0;visibility:hidden;overflow:hidden!important;padding:0!important;pointer-events:none}
+.monitor-site-header .monitor-brand-row{transition:min-height .18s ease,padding .18s ease}
+.monitor-site-header.monitor-toolbar-hidden .monitor-brand-row{min-height:55px}
+.monitor-site-header.monitor-toolbar-hidden .monitor-brand{font-size:22px}
+@media(max-width:767px){
+.monitor-site-header .monitor-header-secondary{max-height:340px!important;padding:10px 0 13px}
+.monitor-site-header.monitor-toolbar-hidden .monitor-header-secondary{max-height:0!important;padding:0!important}
+.monitor-site-header.monitor-toolbar-hidden .monitor-brand-row{min-height:49px}
+.monitor-site-header.monitor-toolbar-hidden .monitor-brand{font-size:18px}
+}
