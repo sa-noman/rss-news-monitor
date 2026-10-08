@@ -49,10 +49,15 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
       const element = document.getElementById('latest-source-story');
       if (!element) return;
       const header = document.querySelector<HTMLElement>('.monitor-site-header');
-      const offset = (header?.getBoundingClientRect().height ?? 65) + 20;
-      const top = window.scrollY + element.getBoundingClientRect().top - offset;
-      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-      setJumpReady(true);
+      // Stabilize the compact header BEFORE scrolling, avoiding its toolbar
+      // switching height while we calculate the final article position.
+      header?.classList.add('monitor-toolbar-hidden');
+      window.requestAnimationFrame(() => {
+        const offset = (header?.getBoundingClientRect().height ?? 65) + 24;
+        const top = window.scrollY + element.getBoundingClientRect().top - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        setJumpReady(true);
+      });
     }, 160);
     return () => clearTimeout(id);
   }, [focusedSource]);
