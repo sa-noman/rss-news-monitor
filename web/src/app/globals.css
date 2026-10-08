@@ -612,3 +612,22 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   outline-offset:4px;
   border-radius:3px;
 }
+
+/* Definitive source expand: the list's measured height grows from 10 to 14
+   visible rows, with additional rows accessible via its own scrollbar. */
+.monitor-source-sidebar #monitor-sidebar-source-list{
+  box-sizing:content-box;
+  max-height:none!important;
+  min-height:0!important;
+  overflow:hidden;
+  transition:height .34s cubic-bezier(.2,.7,.2,1);
+}
+.monitor-source-sidebar #monitor-sidebar-source-list.monitor-sidebar-list-expanded{
+  max-height:none!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden;
+}
+@media(prefers-reduced-motion:reduce){
+  .monitor-source-sidebar #monitor-sidebar-source-list{transition:none}
+}
