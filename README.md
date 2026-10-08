@@ -9,6 +9,21 @@
 
 ---
 
+## 🔴 লাইভ (ডিপ্লয় সম্পন্ন — ৮ অক্টোবর ২০২৬)
+
+| কী | ঠিকানা |
+|---|---|
+| ওয়েবসাইট | https://news-monitor-web-gamma.vercel.app |
+| সোর্স মনিটরিং | https://news-monitor-web-gamma.vercel.app/sources |
+| রোবট হেলথ | https://news-monitor-worker.sanoman-bd.workers.dev/health |
+| GitHub | https://github.com/sa-noman/rss-news-monitor |
+
+Cron প্রতি মিনিটে চলে, ৩০টি স্লটে ভাগ করা ১৮টি ফিড → **প্রতিটি সোর্স প্রতি ৩০ মিনিটে একবার**।
+প্রথম ডিপ্লয়েই ১৮/১৮ সোর্স থেকে ২৩৯টি খবর সংরক্ষিত হয়েছে এবং cron-চালিত রানও প্রমাণিত
+(বিস্তারিত: `docs/LIVE-STATUS.md`)।
+
+---
+
 ## ১. আর্কিটেকচার
 
 ```
