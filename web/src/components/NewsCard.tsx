@@ -104,9 +104,6 @@ export function NewsCard({
                 Related News{relatedCount > 1 ? ' · ' + (relatedCount - 1) : ''}
               </button>
             ) : null}
-            <a className="monitor-read-link" href={item.link} target="_blank" rel="noopener noreferrer nofollow">
-              {dict.readAtSource} ↗
-            </a>
           </div>
         </div>
       </div>
