@@ -4,6 +4,7 @@ import { t } from '@/lib/i18n';
 import { LiveUpdates } from './LiveUpdates';
 import { SearchBar } from './SearchBar';
 import { ThemeToggle } from './ThemeToggle';
+import { ScrollHeaderBehavior } from './ScrollHeaderBehavior';
 
 export function Header({ sourceCount, query }: {
   sourceCount: number;
@@ -12,6 +13,7 @@ export function Header({ sourceCount, query }: {
   const dict = t();
   return (
     <header className="monitor-site-header">
+      <ScrollHeaderBehavior />
       <div className="monitor-header-inner">
         <div className="monitor-brand-row">
           <div id="monitor-category-trigger" className="monitor-category-header-slot" />
