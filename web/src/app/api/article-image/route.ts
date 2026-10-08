@@ -53,14 +53,15 @@ export async function GET(req: NextRequest) {
     try {
       const response = await fetch(data.link, {
         signal:controller.signal,
-        redirect:'manual',
+        redirect:'follow',
         headers: {'Accept':'text/html','User-Agent':'Mozilla/5.0 (compatible; NewsMonitor/1.0)'},
         next:{revalidate:3600}
       });
       if (!response.ok || !(response.headers.get('content-type')??'').includes('text/html')) {
         return NextResponse.json({image:null});
       }
-      const img = articleImageFromHtml(await htmlHead(response),data.link);
+      if (!trusted(response.url || data.link)) return NextResponse.json({image:null});
+      const img = articleImageFromHtml(await htmlHead(response), response.url || data.link);
       return NextResponse.json({image:img},{headers:{'Cache-Control':'public, s-maxage=3600, stale-while-revalidate=1800'}});
     } finally { clearTimeout(timer); }
   } catch {
