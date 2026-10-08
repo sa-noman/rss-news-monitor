@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { categoryColor } from '@/lib/format';
 import { categoryLabel, t } from '@/lib/i18n';
@@ -52,6 +53,8 @@ function CategorySidebar({ active, dict, chips, query }: {
   query: Query;
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     try { if (window.sessionStorage.getItem('monitor-category-drawer-open') === 'yes') setOpen(true); }
@@ -71,8 +74,10 @@ function CategorySidebar({ active, dict, chips, query }: {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
+  const slot = mounted ? document.getElementById("monitor-category-trigger") : null;
   return (
-    <div className="monitor-category-menu">
+    <>
+      {slot ? createPortal(<div className="monitor-category-menu">
       <button type="button" className="monitor-category-toggle" aria-expanded={open}
         aria-controls="monitor-category-sidebar" onClick={() => toggle(!open)}>
         <span className="monitor-category-menu-icon" aria-hidden>☰</span>
@@ -80,13 +85,14 @@ function CategorySidebar({ active, dict, chips, query }: {
         <span className="monitor-category-current">{active === 'All' ? dict.allCategories : categoryLabel(active)}</span>
         <span aria-hidden>{open ? '×' : '☰'}</span>
       </button>
-      {open ? (
+      </div>, slot) : null}
+      {open && mounted ? createPortal(
         <>
           <button type="button" className="monitor-category-backdrop" aria-label="Close category menu" onClick={() => toggle(false)} />
           <aside id="monitor-category-sidebar" className="monitor-category-drawer" aria-label={dict.filterByCategory}>
             <div className="monitor-category-drawer-header">
               <div><h2>{dict.filterByCategory}</h2><p>{chips.length - 1} categories</p></div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close categories">×</button>
+              <button type="button" onClick={() => toggle(false)} aria-label="Close categories">×</button>
             </div>
             <nav aria-label={dict.filterByCategory} className="monitor-category-options">
               {chips.map((chip) => {
@@ -104,7 +110,7 @@ function CategorySidebar({ active, dict, chips, query }: {
             </nav>
           </aside>
         </>
-      ) : null}
-    </div>
+      , document.body) : null}
+    </>
   );
 }
