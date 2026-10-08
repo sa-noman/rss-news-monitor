@@ -40,6 +40,22 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedError, setRelatedError] = useState(false);
   const bn = UI_LANG === 'bn';
+  const [jumpReady, setJumpReady] = useState(false);
+
+  useEffect(() => {
+    if (!focusedSource) return;
+    // Wait for the sticky header and its toolbar to settle before positioning.
+    const id = window.setTimeout(() => {
+      const element = document.getElementById('latest-source-story');
+      if (!element) return;
+      const header = document.querySelector<HTMLElement>('.monitor-site-header');
+      const offset = (header?.getBoundingClientRect().height ?? 65) + 20;
+      const top = window.scrollY + element.getBoundingClientRect().top - offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      setJumpReady(true);
+    }, 160);
+    return () => clearTimeout(id);
+  }, [focusedSource]);
 
   useEffect(() => {
     try {
@@ -151,7 +167,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
               {visible.map((item, i) => {
                 const related = relatedFor(item);
                 return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0}
-                  focused={Boolean(focusedSource && item.source_name === focusedSource && i === 0)}
+                  focused={Boolean(jumpReady && focusedSource && item.source_name === focusedSource && i === 0)}
                   bookmarked={saved.some((x) => x.id === item.id)}
                   onBookmark={toggleBookmark}
                   relatedCount={related.length}
@@ -178,7 +194,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
           </div>
           <div className="monitor-sidebar-list">
             {uniqueSources.slice(0, 10).map((source) => (
-              <div className="monitor-sidebar-source" key={source.name}>
+              <div className={"monitor-sidebar-source " + (focusedSource === source.name ? "monitor-source-selected" : "")} key={source.name}>
                 {source.name.startsWith('Haaretz') ? (
                   <span className="publisher-logo" title="Haaretz" aria-label="Haaretz" style={{ position: "relative" }}>
                     {/* Wikimedia Commons hosts Haaretz's square 2023 logo in vector format. */}
@@ -196,7 +212,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
                   <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
                 )}
                 <div className="monitor-sidebar-source-text">
-                  <Link className="monitor-source-jump" title={'Jump to latest '+source.name+' story'} href={'/?source=' + encodeURIComponent(source.name) + '&focus=latest#latest-source-story'}>{source.name}</Link>
+                  <Link className="monitor-source-jump" aria-current={focusedSource === source.name ? 'true' : undefined} title={'Jump to latest '+source.name+' story'} href={'/?source=' + encodeURIComponent(source.name) + '&focus=latest'}>{source.name}</Link>
                   <small>{source.last_checked_at ? (bn ? 'চেক ' : 'Checked ') + relativeTime(source.last_checked_at) : (bn ? 'সক্রিয় ফিড' : 'Active feed')}</small>
                 </div>
                 <span className="monitor-source-active" title={bn ? 'সক্রিয়' : 'Active'} />
