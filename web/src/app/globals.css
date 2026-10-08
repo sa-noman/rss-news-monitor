@@ -665,3 +665,56 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 @media (min-width:768px) and (max-width:1100px) {
   .view-grid .monitor-feed {grid-template-columns:repeat(2,minmax(0,1fr));gap:19px}
 }
+
+/* Prevent any publisher icon from flashing a broken <img> while a remote
+   favicon is loading, failing, or being retried. The monogram is always ready. */
+.publisher-logo-stable{position:relative;isolation:isolate}
+.publisher-logo-stable .publisher-logo-standby{
+  position:absolute;inset:0;z-index:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .14s ease;
+}
+.publisher-logo-stable img.publisher-logo-asset{
+  position:absolute;z-index:1;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  display:block;width:88%;height:88%;max-width:88%;max-height:88%;
+  object-fit:contain;transition:opacity .14s ease;
+}
+
+/* Quiet, aligned selection/hover in the Source Monitoring sidebar. */
+.monitor-source-sidebar .monitor-sidebar-source{
+  transition:background-color .16s ease;
+}
+.monitor-source-sidebar .monitor-sidebar-source:hover:not(.monitor-source-selected){
+  background:rgba(61,96,136,.045);
+  border-radius:7px;
+}
+.monitor-source-sidebar .monitor-sidebar-source.monitor-source-selected{
+  padding-left:0;
+  padding-right:0;
+  margin-left:0;
+  margin-right:0;
+  border-radius:7px;
+  background:rgba(61,96,136,.075);
+  box-shadow:inset 2px 0 0 rgba(75,109,148,.55);
+}
+.monitor-source-sidebar .monitor-sidebar-source.monitor-source-selected .monitor-source-jump{
+  color:var(--text);
+  font-weight:750;
+}
+.monitor-source-sidebar .monitor-sidebar-source .monitor-source-jump:hover{
+  color:var(--text);
+  transform:none;
+}
+:root[data-theme="dark"] .monitor-source-sidebar .monitor-sidebar-source.monitor-source-selected{
+  background:rgba(139,166,204,.095);
+  box-shadow:inset 2px 0 0 rgba(139,166,204,.6);
+}
+:root[data-theme="dark"] .monitor-source-sidebar .monitor-sidebar-source:hover:not(.monitor-source-selected){
+  background:rgba(139,166,204,.055);
+}
+@media(prefers-reduced-motion:reduce){
+  .publisher-logo-stable .publisher-logo-standby,
+  .publisher-logo-stable img.publisher-logo-asset,
+  .monitor-source-sidebar .monitor-sidebar-source{transition:none}
+}
