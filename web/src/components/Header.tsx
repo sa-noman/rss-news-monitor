@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { t } from '@/lib/i18n';
 import { LiveUpdates } from './LiveUpdates';
 import { SearchBar } from './SearchBar';
@@ -30,7 +31,9 @@ export function Header({ sourceCount, query }: {
         </div>
         <div className="monitor-header-secondary">
           <p>{dict.tagline}</p>
-          <SearchBar defaultValue={query.q ?? ''} hidden={{ category: query.category, source: query.source }} />
+          <Suspense fallback={<div className="monitor-search" aria-hidden><input disabled placeholder={dict.searchPlaceholder} /><button disabled>{dict.search}</button></div>}>
+            <SearchBar defaultValue={query.q ?? ''} />
+          </Suspense>
         </div>
       </div>
     </header>
