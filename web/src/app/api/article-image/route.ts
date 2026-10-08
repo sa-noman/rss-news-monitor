@@ -49,19 +49,21 @@ export async function GET(req: NextRequest) {
     if (data.image_url) return NextResponse.json({image:data.image_url});
     if (!trusted(data.link)) return NextResponse.json({image:null});
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3200);
+    const isAnadolu = new URL(data.link).hostname.endsWith('aa.com.tr');
+    const timer = setTimeout(() => controller.abort(), isAnadolu ? 6500 : 3200);
     try {
       const response = await fetch(data.link, {
         signal:controller.signal,
         redirect:'follow',
-        headers: {'Accept':'text/html','User-Agent':'Mozilla/5.0 (compatible; NewsMonitor/1.0)'},
+        headers: {'Accept':'text/html,application/xhtml+xml','Accept-Language':'en-US,en;q=0.9','User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'},
         next:{revalidate:3600}
       });
-      if (!response.ok || !(response.headers.get('content-type')??'').includes('text/html')) {
+      if (!response.ok || ((response.headers.get('content-type')??'').length > 0 && !(response.headers.get('content-type')??'').includes('text/html'))) {
         return NextResponse.json({image:null});
       }
       if (!trusted(response.url || data.link)) return NextResponse.json({image:null});
-      const img = articleImageFromHtml(await htmlHead(response), response.url || data.link);
+      const html = await htmlHead(response);
+      const img = articleImageFromHtml(html, response.url || data.link);
       return NextResponse.json({image:img},{headers:{'Cache-Control':'public, s-maxage=3600, stale-while-revalidate=1800'}});
     } finally { clearTimeout(timer); }
   } catch {
