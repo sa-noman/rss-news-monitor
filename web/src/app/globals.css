@@ -508,3 +508,9 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 @media(max-width:950px){.monitor-site-header .monitor-header-secondary{max-height:240px}}
 @media(max-width:767px){.monitor-site-header .monitor-header-secondary{max-height:320px}}
 @media(prefers-reduced-motion:reduce){.monitor-site-header .monitor-header-secondary{transition:none}}
+
+/* Avoid sticky-header feedback loop: collapse toolbar visually without moving document layout. */
+.monitor-site-header .monitor-header-secondary{max-height:none!important;overflow:visible!important;opacity:1;visibility:visible;padding-top:12px;padding-bottom:15px;transform:translateY(0);transition:opacity .22s ease,transform .22s ease!important}
+.monitor-site-header.monitor-toolbar-hidden .monitor-header-secondary{max-height:none!important;opacity:0;visibility:hidden;transform:translateY(-12px);padding-top:12px;padding-bottom:15px;pointer-events:none}
+@media(max-width:767px){.monitor-site-header .monitor-header-secondary,.monitor-site-header.monitor-toolbar-hidden .monitor-header-secondary{padding-top:10px;padding-bottom:13px}}
+@media(prefers-reduced-motion:reduce){.monitor-site-header .monitor-header-secondary{transition:none!important}}
