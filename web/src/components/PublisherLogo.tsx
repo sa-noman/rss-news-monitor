@@ -51,7 +51,12 @@ export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: Pu
   // publisher touch icon only if that single request fails or is too small.
   const favicon = domain ? 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128' : '';
   const touchIcon = domain ? 'https://' + domain + '/apple-touch-icon.png' : '';
-  const src = stage === 0 ? favicon : touchIcon;
+  // Small brand marks should not reject Google's genuine 16px/32px
+  // favicon: the earlier 24px threshold was causing every attempt to fall
+  // through to initials. Large placeholders still try the touch icon first.
+  const src = large
+    ? (stage === 0 ? touchIcon : favicon)
+    : (stage === 0 ? favicon : touchIcon);
   const showImage = Boolean(domain && stage < 2);
 
   const imageFailed = () => {
@@ -79,7 +84,10 @@ export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: Pu
           style={{ opacity: ready ? 1 : 0 }}
           onLoad={event => {
             const image = event.currentTarget;
-            const minimum = large ? 48 : 24;
+            // Favicons are often served as real 16x16/32x32 images even
+            // when &sz=128 is requested. They are valid for the small sidebar
+            // badge and should appear instead of permanent initials.
+            const minimum = large ? 32 : 1;
             if (image.naturalWidth < minimum || image.naturalHeight < minimum) {
               imageFailed();
               return;
