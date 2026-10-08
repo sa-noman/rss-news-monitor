@@ -719,15 +719,6 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   .monitor-source-sidebar .monitor-sidebar-source{transition:none}
 }
 
-/* Header-only visual refinements. Kalebrion is a licensed commercial typeface:
-   this declaration uses it ONLY when the site owner supplies a licensed font;
-   otherwise the existing bundled sans-serif fallback is retained. */
-.monitor-site-header .monitor-brand-kalebrion{
-  font-family:"Kalebrion","DM Sans",Inter,system-ui,sans-serif;
-  font-weight:400;
-  letter-spacing:.005em;
-}
-
 /* Category trigger: deep-blue background instead of white/red. Drawer,
    filters, category badges and category selection logic remain unchanged. */
 .monitor-site-header .monitor-category-header-slot .monitor-category-toggle{
@@ -763,7 +754,7 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   white-space:nowrap;
 }
 .monitor-realtime .monitor-live-indicator .monitor-live-label{
-  font-size:10px;
+  font-size:14px;
   line-height:1;
   font-weight:750;
   letter-spacing:.035em;
@@ -830,7 +821,7 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   .monitor-realtime .monitor-update-copy small{display:none}
   .monitor-realtime .monitor-update-arrow{display:none}
   .monitor-realtime .monitor-live-indicator{gap:4px;padding:0 2px}
-  .monitor-realtime .monitor-live-indicator .monitor-live-label{font-size:9px}
+  .monitor-realtime .monitor-live-indicator .monitor-live-label{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){
   .monitor-realtime .monitor-new-pill,
