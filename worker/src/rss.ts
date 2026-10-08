@@ -136,6 +136,8 @@ function itemImage(block: string, base: string, descriptionHtml: string | null):
   }
   for (const attrs of tagAttrsAll(block, 'itunes:image')) candidates.push(tagAttr(attrs, 'href'));
   for (const attrs of tagAttrsAll(block, 'image')) candidates.push(tagAttr(attrs, 'href') ?? tagAttr(attrs, 'url'));
+  // Anadolu Agency publishes item photos as <image>URL</image> (not attributes).
+  if (new URL(base).hostname.endsWith('aa.com.tr')) candidates.push(tagText(block, ['image']));
 
   if (descriptionHtml) {
     const imgRe = /<img\b([^>]*)>/gi;
