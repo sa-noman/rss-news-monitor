@@ -46,58 +46,6 @@ async function anadoluFeedImage(articleUrl: string): Promise<string | null> {
   return null;
 }
 
-/** Washington Post feeds can carry the original image when article HTML is inaccessible. */
-async function washingtonPostFeedImage(articleUrl: string): Promise<string | null> {
-  const feeds = [
-    'https://feeds.washingtonpost.com/rss/world',
-    'https://feeds.washingtonpost.com/rss/politics',
-    'https://feeds.washingtonpost.com/rss/national',
-    'https://feeds.washingtonpost.com/rss/business',
-  ];
-  const article = new URL(articleUrl);
-  const articlePath = article.pathname.replace(/\/+$/, '');
-  for (const feed of feeds) {
-    try {
-      const response = await fetch(feed, { signal: AbortSignal.timeout(3200), next: { revalidate: 300 } });
-      if (!response.ok) continue;
-      const xml = (await response.text()).slice(0, 600_000);
-      const items = xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? [];
-      for (const item of items) {
-        const link = item.match(/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/i)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').trim();
-        if (!link) continue;
-        let match = false;
-        try {
-          const feedArticle = new URL(link);
-          const feedPath = feedArticle.pathname.replace(/\/+$/, '');
-          // Syndicated Washington Post links may include a tracking suffix or
-          // different feed host, but their original story slug is retained.
-          match = feedPath === articlePath || (articlePath.length > 45 && feedPath.endsWith(articlePath));
-        } catch { /* ignore invalid link */ }
-        if (!match) continue;
-        const tags = [
-          ...item.matchAll(/<(?:media:content|media:thumbnail|enclosure)\b([^>]*?)\/?>/gi),
-        ];
-        for (const tag of tags) {
-          const attributes = tag[1] ?? '';
-          const type = attributes.match(/\btype=["']([^"']+)["']/i)?.[1];
-          if (type && !type.startsWith('image/')) continue;
-          const raw = attributes.match(/\burl=["']([^"']+)["']/i)?.[1];
-          if (!raw) continue;
-          const image = new URL(raw.replace(/&amp;/gi, '&'), feed);
-          if (image.protocol === 'https:' && !/(?:logo|icon|avatar|placeholder)/i.test(image.pathname)) return image.toString();
-        }
-        const description = item.match(/<(?:description|content:encoded)>([\s\S]*?)<\/(?:description|content:encoded)>/i)?.[1] ?? '';
-        const raw = description.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i)?.[1];
-        if (raw) {
-          const image = new URL(raw.replace(/&amp;/gi, '&'), feed);
-          if (image.protocol === 'https:' && !/(?:logo|icon|avatar|placeholder)/i.test(image.pathname)) return image.toString();
-        }
-      }
-    } catch { /* feeds can be temporarily inaccessible */ }
-  }
-  return null;
-}
-
 /** Match only a real Economist article in a feed; never reuse a section image. */
 async function economistFeedImage(articleUrl: string): Promise<string | null> {
   const feeds = [
@@ -207,10 +155,6 @@ export async function GET(req: NextRequest) {
     if (isAnadolu) {
       const rssImage = await anadoluFeedImage(data.link);
       if (rssImage) return NextResponse.json({ image:rssImage }, { headers:{ 'Cache-Control':'public, s-maxage=300' } });
-    }
-    if (new URL(data.link).hostname.endsWith('washingtonpost.com')) {
-      const rssImage = await washingtonPostFeedImage(data.link);
-      if (rssImage) return NextResponse.json({ image: rssImage }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
     }
     if (new URL(data.link).hostname.endsWith('economist.com')) {
       const rssImage = await economistFeedImage(data.link);
