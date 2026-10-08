@@ -11,9 +11,20 @@ main = "src/index.ts"
 compatibility_date = "2025-08-01"
 workers_dev = true
 
-# Monitoring schedule — every 30 minutes (Asia/Dhaka friendly: :00 and :30)
+# Monitoring schedule.
+#
+# The free Workers plan allows only ~10 ms CPU per invocation, which is not
+# enough to parse all 18 feeds in one go. The worker therefore rotates the feed
+# list: slot = floor(UTC minute / 1) % 30, and this cron ticks every minute.
+# Each tick handles exactly one feed, so every source is still polled every
+# 30 minutes while a single invocation pays the CPU cost of one feed.
+#
+# Want one single run every 30 minutes instead? Set FEED_SHARDS = "1" and use
+# crons = ["*/30 * * * *"]. That works on the Workers Paid plan (30 s CPU);
+# on the free plan a single 18-feed run exceeds the 10 ms CPU limit and is
+# terminated with Error 1102.
 [triggers]
-crons = ["*/30 * * * *"]
+crons = ["* * * * *"]
 
 # Non-secret configuration only
 [vars]
