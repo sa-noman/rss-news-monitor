@@ -96,6 +96,17 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         </div>
       </div>
 
+      {filtering ? (
+        <div className="active-filter-row" aria-label={bn ? 'নির্বাচিত ফিল্টার' : 'Selected filters'}>
+          <span className="active-filter-label">{bn ? 'চালু ফিল্টার:' : 'Active filters:'}</span>
+          {category !== 'All' ? <Link href={buildHref({ ...filters, category: 'All' })} className="active-filter-pill">{category} <span aria-hidden>×</span></Link> : null}
+          {source ? <Link href={buildHref({ ...filters, source: undefined })} className="active-filter-pill">{source} <span aria-hidden>×</span></Link> : null}
+          {date && date !== 'all' ? <Link href={buildHref({ ...filters, date: undefined, from: undefined, to: undefined })} className="active-filter-pill">{date === 'custom' ? [from, to].filter(Boolean).join(' → ') || 'Custom' : date} <span aria-hidden>×</span></Link> : null}
+          {q ? <Link href={buildHref({ ...filters, q: undefined })} className="active-filter-pill">{q} <span aria-hidden>×</span></Link> : null}
+          <Link href="/" className="active-filter-clear">{bn ? 'সব মুছুন' : 'Clear all'}</Link>
+        </div>
+      ) : null}
+
       <NewsDashboard items={items} sources={sourcesResult.sources}>
         <Pagination page={page} totalPages={totalPages} query={filters} />
       </NewsDashboard>
