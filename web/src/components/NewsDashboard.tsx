@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { FeedSourceRow, NewsItem } from '@/lib/types';
 import { fullDate, relativeTime } from '@/lib/format';
@@ -35,6 +35,9 @@ export function NewsDashboard({ items, sources, children }: Props) {
   const [saved, setSaved] = useState<NewsItem[]>([]);
   const [savedOnly, setSavedOnly] = useState(false);
   const [selected, setSelected] = useState<NewsItem | null>(null);
+  const [relatedResults, setRelatedResults] = useState<NewsItem[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedError, setRelatedError] = useState(false);
   const bn = UI_LANG === 'bn';
 
   useEffect(() => {
@@ -54,6 +57,26 @@ export function NewsDashboard({ items, sources, children }: Props) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [selected]);
 
+  useEffect(() => {
+    if (!selected) {
+      setRelatedResults([]);
+      return;
+    }
+    const controller = new AbortController();
+    setRelatedLoading(true);
+    setRelatedError(false);
+    setRelatedResults([]);
+    fetch('/api/related?id=' + encodeURIComponent(selected.id), { signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Related news unavailable');
+        return response.json() as Promise<{ related: NewsItem[] }>;
+      })
+      .then(data => { if (!controller.signal.aborted) setRelatedResults(data.related ?? []); })
+      .catch(() => { if (!controller.signal.aborted) setRelatedError(true); })
+      .finally(() => { if (!controller.signal.aborted) setRelatedLoading(false); });
+    return () => controller.abort();
+  }, [selected]);
+
   const setMode = (next: View) => {
     setView(next);
     try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* storage disabled */ }
@@ -70,21 +93,24 @@ export function NewsDashboard({ items, sources, children }: Props) {
   };
 
   const visible = savedOnly ? saved : items;
-  // Only exact normalized matching headlines from *different publishers* are
-  // grouped. Never invent a match when no grouping data exists.
-  const groups = useMemo(() => {
-    const results = new Map<string, NewsItem[]>();
-    for (const article of visible) {
-      const key = normalizedHeadline(article.title);
-      const group = results.get(key) ?? [];
-      group.push(article);
-      results.set(key, group);
-    }
-    return results;
-  }, [visible]);
+  // Conservative presentation-only matching on the fetched page.
+  // No cross-page or database-wide clustering is claimed.
   const relatedFor = (article: NewsItem): NewsItem[] => {
-    const matches = groups.get(normalizedHeadline(article.title)) ?? [];
-    return new Set(matches.map((x) => x.source_name)).size > 1 ? matches : [];
+    const stopwords = new Set(['the','and','for','with','from','that','this','after','amid','over','about','says','said','into','will','have','has','are','was','were','new','news','more','than','their','its','his','her','at','in','on','of','to','a','an','as','by','or','is','us','uk']);
+    const terms = (title: string) => new Set(normalizedHeadline(title).split(' ').filter(word => word.length >= 4 && !stopwords.has(word)));
+    const originalTerms = terms(article.title);
+    const originalDate = Date.parse(article.published_at ?? article.created_at);
+    const matched = visible.filter(other => {
+      if (other.source_name === article.source_name || other.id === article.id) return false;
+      const comparisonDate = Date.parse(other.published_at ?? other.created_at);
+      if (!Number.isFinite(originalDate) || !Number.isFinite(comparisonDate) || Math.abs(originalDate - comparisonDate) > 72 * 60 * 60 * 1000) return false;
+      if (normalizedHeadline(other.title) === normalizedHeadline(article.title)) return true;
+      const otherTerms = terms(other.title);
+      const shared = [...originalTerms].filter(term => otherTerms.has(term)).length;
+      const union = new Set([...originalTerms, ...otherTerms]).size;
+      return shared >= 4 && shared / Math.max(union, 1) >= 0.65;
+    });
+    return [article, ...matched];
   };
 
   const activeSources = sources.filter((s) => s.is_active);
@@ -126,7 +152,7 @@ export function NewsDashboard({ items, sources, children }: Props) {
                   bookmarked={saved.some((x) => x.id === item.id)}
                   onBookmark={toggleBookmark}
                   relatedCount={related.length}
-                  onRelated={related.length > 1 ? setSelected : undefined} />;
+                  onRelated={setSelected} />;
               })}
             </div>
           ) : (
@@ -167,20 +193,22 @@ export function NewsDashboard({ items, sources, children }: Props) {
         </aside>
       </div>
 
-      {selected && relatedFor(selected).length > 1 ? (
+      {selected ? (
         <div className="coverage-backdrop" onClick={() => setSelected(null)}>
           <aside className="coverage-drawer" role="dialog" aria-modal="true" aria-label={bn ? 'একই সংবাদের সোর্স' : 'Related coverage'} onClick={(event) => event.stopPropagation()}>
             <div className="coverage-drawer-top">
               <div>
                 <span className="coverage-kicker">{bn ? 'একই শিরোনামের প্রতিবেদন' : 'Matching reports'}</span>
-                <h3>{bn ? 'একাধিক সোর্স' : 'Related coverage'}</h3>
+                <h3>Related News</h3>
               </div>
               <button className="coverage-close" onClick={() => setSelected(null)} aria-label="Close panel">×</button>
             </div>
             <h4 className="coverage-story-title">{selected.title}</h4>
-            <div className="coverage-source-count">{relatedFor(selected).length} {bn ? 'সোর্সে পাওয়া গেছে' : 'publisher reports'}</div>
+            <div className="coverage-source-count">{relatedLoading ? 'Searching other publishers…' : relatedResults.length + ' related reports'}</div>
             <div className="coverage-reports">
-              {relatedFor(selected).map((article) => (
+              {!relatedLoading && !relatedError && relatedResults.length === 0 ? <p className="coverage-no-matches">No related news found</p> : null}
+              {relatedError ? <p className="coverage-no-matches">Could not check related news right now.</p> : null}
+              {relatedResults.map((article) => (
                 <a key={article.id} href={article.link} target="_blank" rel="noopener noreferrer nofollow" className="coverage-report">
                   <PublisherLogo name={article.source_name} sourceUrl={article.source_url} articleUrl={article.link} />
                   <div><strong>{article.source_name}</strong><time dateTime={article.published_at ?? article.created_at} title={fullDate(article.published_at ?? article.created_at)}>{relativeTime(article.published_at ?? article.created_at)}</time><p>{article.title}</p></div>
@@ -188,7 +216,7 @@ export function NewsDashboard({ items, sources, children }: Props) {
                 </a>
               ))}
             </div>
-            <p className="coverage-disclaimer">{bn ? 'শুধু বর্তমানে পাওয়া হুবহু মিলে যাওয়া শিরোনাম দেখানো হয়েছে।' : 'Matches are limited to identical normalized headlines in the loaded results.'}</p>
+            <p className="coverage-disclaimer">{bn ? 'শুধু এই পাতায় লোড হওয়া সংবাদের মধ্যে সতর্কতার সঙ্গে শিরোনাম মিলিয়ে দেখানো হয়েছে।' : 'Matches are checked against other publishers in the database within a 72-hour window. Similarity matching may not find every report.'}</p>
           </aside>
         </div>
       ) : null}

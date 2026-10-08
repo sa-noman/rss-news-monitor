@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { categoryColor } from '@/lib/format';
 import { categoryLabel, t } from '@/lib/i18n';
@@ -38,20 +42,75 @@ export function CategoryChips({ active, stats, query }: {
   ];
 
   return (
-    <nav aria-label={dict.filterByCategory} className="chip-row monitor-chips">
-      {chips.map((chip) => {
-        const isActive = chip.key === active || (chip.key === 'All' && (!active || active === 'All'));
-        return (
-          <Link key={chip.key} href={buildHref(query, chip.key)}
-            aria-current={isActive ? 'page' : undefined}
-            className={'monitor-chip ' + (chip.color ? 'is-colored ' : 'is-all ') + (isActive ? 'is-selected' : '')}
-            style={chip.color ? { backgroundColor: chip.color, borderColor: chip.color, color: '#fff' } : undefined}
-          >
-            <span>{chip.label}</span>
-            {typeof chip.count === 'number' ? <span className="monitor-chip-count">{chip.count}</span> : null}
-          </Link>
-        );
-      })}
-    </nav>
+    <CategorySidebar active={active} dict={dict} chips={chips} query={query} />
+  );
+}
+
+function CategorySidebar({ active, dict, chips, query }: {
+  active: string;
+  dict: ReturnType<typeof t>;
+  chips: Array<{ key: string; label: string; count: number | undefined; color?: string }>;
+  query: Query;
+}) {
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    try { if (window.sessionStorage.getItem('monitor-category-drawer-open') === 'yes') setOpen(true); }
+    catch { /* session storage may be disabled */ }
+  }, []);
+
+  const toggle = (value: boolean) => {
+    setOpen(value);
+    try { window.sessionStorage.setItem('monitor-category-drawer-open', value ? 'yes' : 'no'); }
+    catch { /* storage may be disabled */ }
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') toggle(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const slot = mounted ? document.getElementById("monitor-category-trigger") : null;
+  return (
+    <>
+      {slot ? createPortal(<div className="monitor-category-menu">
+      <button type="button" className="monitor-category-toggle" aria-expanded={open}
+        aria-controls="monitor-category-sidebar" onClick={() => toggle(!open)}>
+        <span className="monitor-category-menu-icon" aria-hidden>☰</span>
+        <span>{dict.filterByCategory}</span>
+        <span className="monitor-category-current">{active === 'All' ? dict.allCategories : categoryLabel(active)}</span>
+        <span aria-hidden>{open ? '×' : '☰'}</span>
+      </button>
+      </div>, slot) : null}
+      {open && mounted ? createPortal(
+        <>
+          <button type="button" className="monitor-category-backdrop" aria-label="Close category menu" onClick={() => toggle(false)} />
+          <aside id="monitor-category-sidebar" className="monitor-category-drawer" aria-label={dict.filterByCategory}>
+            <div className="monitor-category-drawer-header">
+              <div><h2>{dict.filterByCategory}</h2><p>{chips.length - 1} categories</p></div>
+              <button type="button" onClick={() => toggle(false)} aria-label="Close categories">×</button>
+            </div>
+            <nav aria-label={dict.filterByCategory} className="monitor-category-options">
+              {chips.map((chip) => {
+                const isActive = chip.key === active || (chip.key === 'All' && (!active || active === 'All'));
+                return (
+                  <Link key={chip.key} href={buildHref(query, chip.key)}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={'monitor-chip ' + (chip.color ? 'is-colored ' : 'is-all ') + (isActive ? 'is-selected' : '')}
+                    style={chip.color ? { backgroundColor: `color-mix(in srgb, ${chip.color} 10%, var(--surface))`, borderColor: `color-mix(in srgb, ${chip.color} 24%, var(--border))`, color: chip.color } : undefined}>
+                    <span>{chip.label}</span>
+                    {typeof chip.count === 'number' ? <span className="monitor-chip-count">{chip.count}</span> : null}
+                  </Link>
+                );
+              })}
+            </nav>
+          </aside>
+        </>
+      , document.body) : null}
+    </>
   );
 }

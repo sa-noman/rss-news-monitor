@@ -7,7 +7,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: process.env.NEXT_PUBLIC_SITE_NAME ?? 'News Monitor — আন্তর্জাতিক সংবাদ এক জায়গায়',
+    default: process.env.NEXT_PUBLIC_SITE_NAME ?? 'News Monitor | International News',
     template: '%s · News Monitor',
   },
   description:
@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="flex min-h-screen flex-col">
         <Header sourceCount={activeCount} query={{}} />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">{children}</main>
+        <main className="monitor-main-shell mx-auto w-full flex-1">{children}</main>
         <Footer sourceCount={activeCount} />
       </body>
     </html>

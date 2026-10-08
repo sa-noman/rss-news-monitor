@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CategoryChips } from '@/components/CategoryChips';
 import { DateFilter } from '@/components/DateFilter';
+import { HeaderFiltersPortal } from '@/components/HeaderFiltersPortal';
 import { ModeBanner } from '@/components/ModeBanner';
 import { NewsDashboard } from '@/components/NewsDashboard';
 import { Pagination } from '@/components/Pagination';
@@ -58,25 +59,9 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
     <div className="monitor-home">
       {mode === 'demo' ? <ModeBanner error={error} /> : null}
 
-      <div className="monitor-page-intro">
-        <div>
-          <span className="monitor-eyebrow">{bn ? 'আন্তর্জাতিক সংবাদ পর্যবেক্ষণ' : 'GLOBAL NEWS MONITORING'}</span>
-          <h1 className="headline">{bn ? 'আন্তর্জাতিক নিউজ মনিটর' : 'Global news monitoring'}</h1>
-          <p>{dict.tagline}</p>
-        </div>
-        <div className="monitor-stats">
-          <div><strong>{total.toLocaleString()}</strong><span>{bn ? 'সংবাদ' : 'Stories'}</span></div>
-          <div><strong>{activeSources.length}</strong><span>{bn ? 'সক্রিয় সোর্স' : 'Sources'}</span></div>
-          <div><strong>{NEWS_PAGE_SIZE}</strong><span>{bn ? 'প্রতি পাতায়' : 'Per page'}</span></div>
-        </div>
-      </div>
-
       <CategoryChips active={category} stats={stats} query={{ q, source, date, from, to }} />
 
-      <div className="monitor-filterbar">
-        <div className="monitor-resultcount">
-          {dict.showing} <strong>{items.length}</strong> {dict.of} <strong>{total}</strong> {dict.items}
-        </div>
+      <HeaderFiltersPortal>
         <div className="monitor-filter-actions">
           <DateFilter date={date} from={from} to={to} />
           <details className="monitor-source-filter">
@@ -94,7 +79,20 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             <Link href="/" className="monitor-clear-filters">{dict.clearFilters} ×</Link>
           ) : null}
         </div>
-      </div>
+      </HeaderFiltersPortal>
+
+      <div className="monitor-resultcount">{dict.showing} <strong>{items.length}</strong> {dict.of} <strong>{total}</strong> {dict.items}</div>
+
+      {filtering ? (
+        <div className="active-filter-row" aria-label={bn ? 'নির্বাচিত ফিল্টার' : 'Selected filters'}>
+          <span className="active-filter-label">{bn ? 'চালু ফিল্টার:' : 'Active filters:'}</span>
+          {category !== 'All' ? <Link href={buildHref({ ...filters, category: 'All' })} className="active-filter-pill">{category} <span aria-hidden>×</span></Link> : null}
+          {source ? <Link href={buildHref({ ...filters, source: undefined })} className="active-filter-pill">{source} <span aria-hidden>×</span></Link> : null}
+          {date && date !== 'all' ? <Link href={buildHref({ ...filters, date: undefined, from: undefined, to: undefined })} className="active-filter-pill">{date === 'custom' ? [from, to].filter(Boolean).join(' → ') || 'Custom' : date} <span aria-hidden>×</span></Link> : null}
+          {q ? <Link href={buildHref({ ...filters, q: undefined })} className="active-filter-pill">{q} <span aria-hidden>×</span></Link> : null}
+          <Link href="/" className="active-filter-clear">{bn ? 'সব মুছুন' : 'Clear all'}</Link>
+        </div>
+      ) : null}
 
       <NewsDashboard items={items} sources={sourcesResult.sources}>
         <Pagination page={page} totalPages={totalPages} query={filters} />

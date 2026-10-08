@@ -173,6 +173,14 @@ const SEEDS: Seed[] = [
     'https://www.axios.com',
   ],
   [
+    'Google unveils Gemini 4 models with new on-device AI features',
+    'Financial Times',
+    'Technology',
+    'New on-device AI features are among the capabilities highlighted in the Gemini 4 announcement.',
+    17,
+    'https://www.ft.com',
+  ],
+  [
     'Arab students say Israeli university failed to quell fears of campus unrest',
     'Haaretz (Middle East)',
     'Middle East',

@@ -68,16 +68,17 @@ export function NewsCard({
               <time dateTime={publishDate} title={fullDate(publishDate)}>{timeText}</time>
             </div>
           </div>
-          {relatedCount > 1 && onRelated ? (
-            <button type="button" className="related-trigger" onClick={() => onRelated(item)}
-              aria-label={'View ' + relatedCount + ' sources covering this story'}>
-              <span aria-hidden>▤</span> {relatedCount} sources
-            </button>
-          ) : (
+          <div className="monitor-card-actions">
+            {onRelated ? (
+              <button type="button" className="related-trigger" onClick={() => onRelated(item)}
+                aria-label="Open Related News">
+                Related News{relatedCount > 1 ? ' · ' + (relatedCount - 1) : ''}
+              </button>
+            ) : null}
             <a className="monitor-read-link" href={item.link} target="_blank" rel="noopener noreferrer nofollow">
               {dict.readAtSource} ↗
             </a>
-          )}
+          </div>
         </div>
       </div>
     </article>
