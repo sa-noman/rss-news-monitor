@@ -2,32 +2,49 @@
 
 import { useEffect } from 'react';
 
-/** Hide just the search/filter toolbar while scrolling down, restore on upward scroll. */
+/** Stable scroll-direction detection: changing the toolbar must not cause flicker. */
 export function ScrollHeaderBehavior() {
   useEffect(() => {
     const header = document.querySelector<HTMLElement>('.monitor-site-header');
     if (!header) return;
-    let lastY = window.scrollY;
+    let previous = window.scrollY;
+    let directionDistance = 0;
+    let lastDirection = 0;
+    let hidden = false;
     let frame = 0;
     const onScroll = () => {
       if (frame) return;
-      frame = window.requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
         frame = 0;
         const current = window.scrollY;
-        const delta = current - lastY;
-        const focusInsideToolbar = Boolean(document.activeElement?.closest('.monitor-header-secondary'));
-        if (current < 48 || delta < -5 || focusInsideToolbar) {
-          header.classList.remove('monitor-toolbar-hidden');
-        } else if (current > 145 && delta > 5) {
-          header.classList.add('monitor-toolbar-hidden');
+        const delta = current - previous;
+        previous = current;
+        const focusInside = Boolean(document.activeElement?.closest('.monitor-header-secondary'));
+        if (current < 100 || focusInside) {
+          directionDistance = 0;
+          lastDirection = 0;
+          if (hidden) { header.classList.remove('monitor-toolbar-hidden'); hidden = false; }
+          return;
         }
-        lastY = current;
+        if (Math.abs(delta) < 2) return;
+        const direction = Math.sign(delta);
+        directionDistance = direction === lastDirection ? directionDistance + Math.abs(delta) : Math.abs(delta);
+        lastDirection = direction;
+        if (!hidden && direction > 0 && current > 180 && directionDistance > 55) {
+          header.classList.add('monitor-toolbar-hidden');
+          hidden = true;
+          directionDistance = 0;
+        } else if (hidden && direction < 0 && directionDistance > 65) {
+          header.classList.remove('monitor-toolbar-hidden');
+          hidden = false;
+          directionDistance = 0;
+        }
       });
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
+      if (frame) cancelAnimationFrame(frame);
       header.classList.remove('monitor-toolbar-hidden');
     };
   }, []);
