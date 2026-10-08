@@ -408,3 +408,16 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 .monitor-source-sidebar{box-shadow:none}
 @media(max-width:800px){.monitor-main-shell{padding:20px 20px 35px}.monitor-header-inner{padding:0 20px}}
 @media(max-width:767px){.monitor-main-shell{padding:16px 13px 28px}.monitor-header-inner{padding:0 13px}.monitor-brand-row{min-height:56px}.monitor-header-secondary{min-height:0;padding:8px 0 13px}.monitor-site-header{border-top-width:3px}.monitor-page-intro{padding-bottom:14px}}
+
+/* Compact category chooser replacing the long horizontal tag strip */
+.monitor-category-menu{position:relative;align-self:flex-start;width:max-content;max-width:100%;margin:5px 0 13px;z-index:15}
+.monitor-category-toggle{display:flex;align-items:center;gap:11px;list-style:none;cursor:pointer;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);padding:11px 13px;font-size:13px;font-weight:700;min-width:202px;box-shadow:0 1px 3px #00000005}
+.monitor-category-toggle::-webkit-details-marker{display:none}
+.monitor-category-toggle:hover,.monitor-category-menu[open] .monitor-category-toggle{border-color:var(--muted)}
+.monitor-category-menu-icon{font-size:17px;line-height:1;color:var(--accent)}
+.monitor-category-current{font-size:11px;color:var(--muted);font-weight:500;margin-left:auto;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.monitor-category-options{position:absolute;top:calc(100% + 7px);left:0;z-index:20;width:280px;max-width:calc(100vw - 30px);max-height:min(68vh,440px);overflow-y:auto;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 15px 40px #0000001a;display:flex;flex-direction:column;gap:3px}
+.monitor-category-options .monitor-chip{width:100%;justify-content:space-between;border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.2}
+.monitor-category-options .monitor-chip.is-selected{box-shadow:inset 0 0 0 1px currentColor}
+.monitor-category-options .monitor-chip-count{margin-left:auto;font-size:11px}
+@media(max-width:767px){.monitor-category-toggle{min-width:180px}.monitor-category-menu{margin:3px 0 14px}}
