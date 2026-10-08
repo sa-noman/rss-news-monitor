@@ -22,6 +22,30 @@ function trusted(value: string): boolean {
   } catch { return false; }
 }
 
+/** Anadolu provides lead images in RSS <item><image>URL</image>, not media tags. */
+async function anadoluFeedImage(articleUrl: string): Promise<string | null> {
+  const feed = 'https://www.aa.com.tr/en/rss/default?cat=live';
+  try {
+    const response = await fetch(feed, { signal: AbortSignal.timeout(4500), cache: 'no-store' });
+    if (!response.ok) return null;
+    const xml = (await response.text()).slice(0, 500_000);
+    const articleId = new URL(articleUrl).pathname.match(/\/(\d+)\/?$/)?.[1];
+    if (!articleId) return null;
+    const items = xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? [];
+    for (const item of items) {
+      const link = item.match(/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/i)?.[1] ?? '';
+      const guid = item.match(/<guid(?:\s[^>]*)?>([\s\S]*?)<\/guid>/i)?.[1] ?? '';
+      if (![link,guid].some(s => new RegExp('/' + articleId + '(?:/|\\s|$|<|\\?)').test(s))) continue;
+      const raw = item.match(/<image(?:\s[^>]*)?>([\s\S]*?)<\/image>/i)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g,'').trim();
+      if (!raw) return null;
+      const url = new URL(raw.replace(/&amp;/g,'&'),feed);
+      if (url.protocol !== 'https:' || !/^(?:[\w-]+\.)*aa\.com\.tr$/.test(url.hostname)) return null;
+      return url.toString();
+    }
+  } catch { /* feed unavailable */ }
+  return null;
+}
+
 async function htmlHead(response: Response): Promise<string> {
   const reader = response.body?.getReader();
   if (!reader) return '';
@@ -48,8 +72,12 @@ export async function GET(req: NextRequest) {
     if (error || !data) return NextResponse.json({image:null});
     if (data.image_url) return NextResponse.json({image:data.image_url});
     if (!trusted(data.link)) return NextResponse.json({image:null});
-    const controller = new AbortController();
     const isAnadolu = new URL(data.link).hostname.endsWith('aa.com.tr');
+    if (isAnadolu) {
+      const rssImage = await anadoluFeedImage(data.link);
+      if (rssImage) return NextResponse.json({ image:rssImage }, { headers:{ 'Cache-Control':'public, s-maxage=300' } });
+    }
+    const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), isAnadolu ? 6500 : 3200);
     try {
       const response = await fetch(data.link, {
