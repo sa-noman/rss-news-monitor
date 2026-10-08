@@ -31,7 +31,6 @@ export function Header({ sourceCount, query }: {
           </div>
         </div>
         <div className="monitor-header-secondary">
-          <p>{dict.tagline}</p>
           <div className="monitor-search-filter-group">
           <Suspense fallback={<div className="monitor-search" aria-hidden><input disabled placeholder={dict.searchPlaceholder} /><button disabled>{dict.search}</button></div>}>
             <SearchBar defaultValue={query.q ?? ''} />
