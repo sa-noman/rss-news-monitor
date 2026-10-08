@@ -22,6 +22,7 @@ import {
   USER_AGENT,
 } from './config';
 import { parseFeed } from './rss';
+import { decodeEntities, toAbsoluteUrl } from './text';
 import { insertNewsRows, insertScrapeLogs, loadFeedSources, updateFeedStatus, type FeedStatusUpdate } from './supabase';
 import type { Env, FeedResult, FeedSource, NewsRow, RunResult, ScrapeLogRow } from './types';
 
@@ -134,8 +135,27 @@ async function fetchFeedText(url: string, timeoutMs: number): Promise<FetchOutco
   return { ok: false, status: lastStatus, body: '', finalUrl: url, error: lastError, attempts: 2 };
 }
 
-/** Optional og:image enrichment — disabled unless OG_IMAGE_SCRAPE=true. */
-async function fetchOgImage(articleUrl: string, timeoutMs = 6000): Promise<string | null> {
+/** Extract the original publisher's article preview image, not a generated illustration. */
+export function articleImageFromHtml(html: string, baseUrl: string): string | null {
+  const tags = html.match(/<meta\\b[^>]*>/gi) ?? [];
+  const readAttribute = (tag: string, key: string): string | null => {
+    const escaped = key.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+    const match = new RegExp('(?:^|\\\\s)' + escaped + '\\\\s*=\\\\s*(?:"([^"]*)"|\\'([^\\']*)\\')', 'i').exec(tag);
+    return match ? decodeEntities(match[1] ?? match[2] ?? '') : null;
+  };
+  for (const key of ['og:image:secure_url', 'og:image', 'twitter:image', 'twitter:image:src']) {
+    for (const tag of tags) {
+      const property = (readAttribute(tag, 'property') ?? readAttribute(tag, 'name') ?? '').toLowerCase();
+      if (property !== key) continue;
+      const image = toAbsoluteUrl(readAttribute(tag, 'content'), baseUrl);
+      if (image && !/\\.(svg)(?:[?#]|$)/i.test(image) && !/\\b(?:logo|icon|avatar|placeholder|default-image)\\b/i.test(image)) return image;
+    }
+  }
+  return null;
+}
+
+/** Best-effort article metadata lookup with bounded download and a short timeout. */
+async function fetchOgImage(articleUrl: string, timeoutMs = 2500): Promise<string | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -144,25 +164,9 @@ async function fetchOgImage(articleUrl: string, timeoutMs = 6000): Promise<strin
       headers: { 'User-Agent': USER_AGENT, Accept: 'text/html', 'Accept-Language': 'en-US,en;q=0.9' },
       signal: controller.signal,
     });
-    if (!res.ok) return null;
-    const html = (await res.text()).slice(0, 200_000);
-    const patterns = [
-      /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
-      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,
-    ];
-    for (const re of patterns) {
-      const m = re.exec(html);
-      if (m?.[1]) {
-        try {
-          const abs = new URL(m[1], articleUrl).toString();
-          if (abs.startsWith('http')) return abs;
-        } catch {
-          /* ignore */
-        }
-      }
-    }
-    return null;
+    if (!res.ok || !(res.headers.get('content-type') ?? '').toLowerCase().includes('text/html')) return null;
+    const html = await readCapped(res, 120_000);
+    return articleImageFromHtml(html, res.url || articleUrl);
   } catch {
     return null;
   } finally {
@@ -237,10 +241,12 @@ async function processFeed(
   // optional, off by default: fill missing images from og:image meta tags only
   if ((env.OG_IMAGE_SCRAPE ?? 'false') === 'true') {
     let enriched = 0;
+    let attempts = 0;
     for (const row of rows) {
-      if (row.image_url || enriched >= OG_LIMIT_PER_FEED) continue;
-      if (Date.now() > deadline) break;
-      const img = await fetchOgImage(row.link);
+      if (row.image_url || attempts >= OG_LIMIT_PER_FEED) continue;
+      if (deadline - Date.now() < 2900) break;
+      attempts++;
+      const img = await fetchOgImage(row.link, Math.min(2500, Math.max(600, deadline - Date.now() - 300)));
       if (img) {
         row.image_url = img;
         enriched++;
