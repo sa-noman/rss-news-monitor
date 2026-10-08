@@ -11,6 +11,7 @@ export function ScrollHeaderBehavior() {
     let directionDistance = 0;
     let lastDirection = 0;
     let hidden = false;
+    let lastTransitionAt = 0;
     let frame = 0;
     const onScroll = () => {
       if (frame) return;
@@ -19,11 +20,13 @@ export function ScrollHeaderBehavior() {
         const current = window.scrollY;
         const delta = current - previous;
         previous = current;
+        // Ignore the browser's scroll anchoring adjustment after the toolbar changes height.
+        if (performance.now() - lastTransitionAt < 450) return;
         const focusInside = Boolean(document.activeElement?.closest('.monitor-header-secondary'));
         if (current < 100 || focusInside) {
           directionDistance = 0;
           lastDirection = 0;
-          if (hidden) { header.classList.remove('monitor-toolbar-hidden'); hidden = false; }
+          if (hidden) { header.classList.remove('monitor-toolbar-hidden'); hidden = false; lastTransitionAt = performance.now(); }
           return;
         }
         if (Math.abs(delta) < 2) return;
@@ -33,10 +36,12 @@ export function ScrollHeaderBehavior() {
         if (!hidden && direction > 0 && current > 180 && directionDistance > 55) {
           header.classList.add('monitor-toolbar-hidden');
           hidden = true;
+          lastTransitionAt = performance.now();
           directionDistance = 0;
         } else if (hidden && direction < 0 && directionDistance > 65) {
           header.classList.remove('monitor-toolbar-hidden');
           hidden = false;
+          lastTransitionAt = performance.now();
           directionDistance = 0;
         }
       });
