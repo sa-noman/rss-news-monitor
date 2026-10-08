@@ -173,3 +173,5 @@ CPU লিমিটে ব্যর্থ হবে — `docs/DEPLOY.md`-এ ব
 1. `docs/DEPLOY.md` ধরে Supabase → Cloudflare → Vercel ডিপ্লয়।
 2. চাইলে `docs/DECISIONS.md`-এর খোলা প্রশ্নগুলোর উত্তর দিয়ে পরের ধাপ:
    বাংলা খবরের সোর্স যোগ, og:image scraping চালু, ইমেইল/টেলিগ্রাম অ্যালার্ট, AI ক্লাসিফিকেশন।
+
+<!-- UI deployment sync: 2026-10-08 — trigger Vercel build after connecting GitHub. -->
