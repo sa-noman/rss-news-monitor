@@ -24,13 +24,14 @@ interface Props {
   items: NewsItem[];
   sources: FeedSourceRow[];
   children?: ReactNode;
+  focusedSource?: string;
 }
 
 /**
  * Presentation-only client state. News, pagination, and all server filters still
  * come from the existing Next.js page and Supabase query.
  */
-export function NewsDashboard({ items, sources, children }: Props) {
+export function NewsDashboard({ items, sources, children, focusedSource }: Props) {
   const [view, setView] = useState<View>('list');
   const [saved, setSaved] = useState<NewsItem[]>([]);
   const [savedOnly, setSavedOnly] = useState(false);
@@ -114,7 +115,8 @@ export function NewsDashboard({ items, sources, children }: Props) {
   };
 
   const activeSources = sources.filter((s) => s.is_active);
-  const uniqueSources = activeSources.filter((s, i) => activeSources.findIndex((x) => x.name === s.name) === i);
+  const uniqueSources = activeSources.filter((s, i) => activeSources.findIndex((x) => x.name === s.name) === i)
+    .sort((a, b) => (Date.parse(b.last_checked_at ?? '') || 0) - (Date.parse(a.last_checked_at ?? '') || 0));
 
   return (
     <section className={'monitor-dashboard ' + (view === 'grid' ? 'view-grid' : 'view-list')}>
@@ -149,6 +151,7 @@ export function NewsDashboard({ items, sources, children }: Props) {
               {visible.map((item, i) => {
                 const related = relatedFor(item);
                 return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0}
+                  focused={Boolean(focusedSource && item.source_name === focusedSource && i === 0)}
                   bookmarked={saved.some((x) => x.id === item.id)}
                   onBookmark={toggleBookmark}
                   relatedCount={related.length}
@@ -193,7 +196,7 @@ export function NewsDashboard({ items, sources, children }: Props) {
                   <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
                 )}
                 <div className="monitor-sidebar-source-text">
-                  <strong title={source.name}>{source.name}</strong>
+                  <Link className="monitor-source-jump" title={'Jump to latest '+source.name+' story'} href={'/?source=' + encodeURIComponent(source.name) + '&focus=latest#latest-source-story'}>{source.name}</Link>
                   <small>{source.last_checked_at ? (bn ? 'চেক ' : 'Checked ') + relativeTime(source.last_checked_at) : (bn ? 'সক্রিয় ফিড' : 'Active feed')}</small>
                 </div>
                 <span className="monitor-source-active" title={bn ? 'সক্রিয়' : 'Active'} />
