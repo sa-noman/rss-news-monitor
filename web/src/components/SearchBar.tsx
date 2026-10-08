@@ -1,32 +1,31 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { t } from '@/lib/i18n';
 
-/** Plain GET form: search works even with JavaScript disabled. */
-export function SearchBar({
-  defaultValue,
-  hidden,
-}: {
+/** GET search form. Keep live URL filters across client navigation. */
+export function SearchBar({ defaultValue }: {
   defaultValue: string;
   hidden?: { category?: string; source?: string };
 }) {
   const dict = t();
+  const params = useSearchParams();
+  const currentQuery = params.get('q') ?? defaultValue;
+  const [query, setQuery] = useState(currentQuery);
+
+  useEffect(() => { setQuery(currentQuery); }, [currentQuery]);
+
+  const preserved = ['category', 'source', 'date', 'from', 'to']
+    .map((key) => ({ key, value: params.get(key) }))
+    .filter((pair): pair is { key: string; value: string } => Boolean(pair.value));
+
   return (
-    <form action="/" method="get" role="search" className="flex items-center gap-2">
-      {hidden?.category ? <input type="hidden" name="category" value={hidden.category} /> : null}
-      {hidden?.source ? <input type="hidden" name="source" value={hidden.source} /> : null}
-      <input
-        type="search"
-        name="q"
-        defaultValue={defaultValue}
-        placeholder={dict.searchPlaceholder}
-        aria-label={dict.search}
-        className="h-9 w-full rounded-full border border-line bg-surface px-3.5 text-[13.5px] text-ink outline-none placeholder:text-muted focus:border-accent"
-      />
-      <button
-        type="submit"
-        className="h-9 shrink-0 rounded-full bg-ink px-4 text-[13px] font-semibold text-bg transition-opacity hover:opacity-90"
-      >
-        {dict.search}
-      </button>
+    <form action="/" method="get" role="search" className="monitor-search">
+      {preserved.map(({ key, value }) => <input key={key} type="hidden" name={key} value={value} />)}
+      <input type="search" name="q" value={query} onChange={(event) => setQuery(event.target.value)}
+        placeholder={dict.searchPlaceholder} aria-label={dict.search} />
+      <button type="submit">{dict.search}</button>
     </form>
   );
 }

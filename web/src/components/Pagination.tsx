@@ -1,24 +1,26 @@
 import Link from 'next/link';
 import { t } from '@/lib/i18n';
 
-function href(page: number, query: { q?: string; category?: string; source?: string }): string {
+type Query = { q?: string; category?: string; source?: string; date?: string; from?: string; to?: string };
+function href(page: number, query: Query): string {
   const params = new URLSearchParams();
   if (query.category && query.category !== 'All') params.set('category', query.category);
   if (query.source) params.set('source', query.source);
   if (query.q) params.set('q', query.q);
+  if (query.date && query.date !== 'all') params.set('date', query.date);
+  if (query.date === 'custom') {
+    if (query.from) params.set('from', query.from);
+    if (query.to) params.set('to', query.to);
+  }
   if (page > 1) params.set('page', String(page));
   const qs = params.toString();
-  return qs ? `/?${qs}` : '/';
+  return qs ? '/?' + qs : '/';
 }
 
-export function Pagination({
-  page,
-  totalPages,
-  query,
-}: {
+export function Pagination({ page, totalPages, query }: {
   page: number;
   totalPages: number;
-  query: { q?: string; category?: string; source?: string };
+  query: Query;
 }) {
   if (totalPages <= 1) return null;
   const dict = t();
@@ -27,23 +29,11 @@ export function Pagination({
 
   return (
     <nav className="mt-8 flex items-center justify-center gap-3" aria-label="pagination">
-      {page > 1 ? (
-        <Link href={href(page - 1, query)} className={linkClass} rel="prev">
-          ← {dict.prev}
-        </Link>
-      ) : (
-        <span className={disabledClass}>← {dict.prev}</span>
-      )}
-      <span className="text-[13px] text-muted tabular-nums">
-        {dict.page} {page} / {totalPages}
-      </span>
-      {page < totalPages ? (
-        <Link href={href(page + 1, query)} className={linkClass} rel="next">
-          {dict.next} →
-        </Link>
-      ) : (
-        <span className={disabledClass}>{dict.next} →</span>
-      )}
+      {page > 1 ? <Link href={href(page - 1, query)} className={linkClass} rel="prev">← {dict.prev}</Link>
+        : <span className={disabledClass}>← {dict.prev}</span>}
+      <span className="text-[13px] text-muted tabular-nums">{dict.page} {page} / {totalPages}</span>
+      {page < totalPages ? <Link href={href(page + 1, query)} className={linkClass} rel="next">{dict.next} →</Link>
+        : <span className={disabledClass}>{dict.next} →</span>}
     </nav>
   );
 }

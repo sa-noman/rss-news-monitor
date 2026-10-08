@@ -1,110 +1,104 @@
 import Link from 'next/link';
 import { CategoryChips } from '@/components/CategoryChips';
+import { DateFilter } from '@/components/DateFilter';
 import { ModeBanner } from '@/components/ModeBanner';
-import { NewsCard } from '@/components/NewsCard';
+import { NewsDashboard } from '@/components/NewsDashboard';
 import { Pagination } from '@/components/Pagination';
 import { fetchCategoryStats, fetchNews, fetchSources, NEWS_PAGE_SIZE } from '@/lib/data';
-import { t } from '@/lib/i18n';
+import { t, UI_LANG } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+type FilterQuery = { category?: string; source?: string; q?: string; date?: string; from?: string; to?: string };
 
 const first = (value: string | string[] | undefined): string | undefined =>
   Array.isArray(value) ? value[0] : value;
 
+function buildHref(query: FilterQuery): string {
+  const params = new URLSearchParams();
+  if (query.category && query.category !== 'All') params.set('category', query.category);
+  if (query.source) params.set('source', query.source);
+  if (query.q) params.set('q', query.q);
+  if (query.date && query.date !== 'all') params.set('date', query.date);
+  if (query.date === 'custom') {
+    if (query.from) params.set('from', query.from);
+    if (query.to) params.set('to', query.to);
+  }
+  const qs = params.toString();
+  return qs ? '/?' + qs : '/';
+}
+
 export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
   const dict = t();
-
+  const bn = UI_LANG === 'bn';
   const category = first(sp.category) ?? 'All';
   const source = first(sp.source);
   const q = first(sp.q);
+  const date = first(sp.date);
+  const from = first(sp.from);
+  const to = first(sp.to);
   const page = Math.min(500, Math.max(1, Number.parseInt(first(sp.page) ?? '1', 10) || 1));
 
   const [news, stats, sourcesResult] = await Promise.all([
-    fetchNews({ category, source, q, page }),
+    fetchNews({ category, source, q, date, from, to, page }),
     fetchCategoryStats(),
     fetchSources(),
   ]);
 
   const { items, total, mode, error } = news;
   const totalPages = Math.max(1, Math.ceil(total / NEWS_PAGE_SIZE));
-  const filtering = Boolean((category && category !== 'All') || source || q);
-  const featuredId = !filtering && page === 1 ? items[0]?.id : undefined;
+  const filtering = Boolean((category && category !== 'All') || source || q || (date && date !== 'all'));
   const activeSources = sourcesResult.sources.filter((s) => s.is_active);
   const sourceOptions = [...new Set([...activeSources.map((s) => s.name), ...items.map((i) => i.source_name)])].sort();
+  const filters = { category, source, q, date, from, to };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="monitor-home">
       {mode === 'demo' ? <ModeBanner error={error} /> : null}
 
-      <CategoryChips active={category} stats={stats} query={{ q, source }} />
-
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-muted">
-        <span>
-          {dict.showing} <strong className="text-ink tabular-nums">{items.length}</strong> {dict.of}{' '}
-          <strong className="text-ink tabular-nums">{total}</strong> {dict.items}
-        </span>
-
-        <details className="relative">
-          <summary className="cursor-pointer list-none rounded-full border border-line bg-surface px-3 py-1 font-medium hover:border-accent hover:text-accent">
-            {dict.filterBySource}: <span className="text-ink">{source ?? dict.allCategories}</span>
-          </summary>
-          <div className="absolute z-20 mt-1 max-h-72 w-60 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-lg">
-            <Link
-              href={buildHref({ category, q })}
-              className="block rounded-lg px-3 py-1.5 text-[13px] hover:bg-accent-soft"
-            >
-              {dict.allCategories}
-            </Link>
-            {sourceOptions.map((name) => (
-              <Link
-                key={name}
-                href={buildHref({ category, q, source: name })}
-                className={`block rounded-lg px-3 py-1.5 text-[13px] hover:bg-accent-soft ${
-                  name === source ? 'font-semibold text-accent' : ''
-                }`}
-              >
-                {name}
-              </Link>
-            ))}
-          </div>
-        </details>
-
-        {filtering ? (
-          <Link href="/" className="font-medium text-accent hover:underline">
-            {dict.clearFilters} ✕
-          </Link>
-        ) : null}
+      <div className="monitor-page-intro">
+        <div>
+          <span className="monitor-eyebrow">{bn ? 'আন্তর্জাতিক সংবাদ পর্যবেক্ষণ' : 'GLOBAL NEWS MONITORING'}</span>
+          <h1 className="headline">{bn ? 'আন্তর্জাতিক নিউজ মনিটর' : 'Global news monitoring'}</h1>
+          <p>{dict.tagline}</p>
+        </div>
+        <div className="monitor-stats">
+          <div><strong>{total.toLocaleString()}</strong><span>{bn ? 'সংবাদ' : 'Stories'}</span></div>
+          <div><strong>{activeSources.length}</strong><span>{bn ? 'সক্রিয় সোর্স' : 'Sources'}</span></div>
+          <div><strong>{NEWS_PAGE_SIZE}</strong><span>{bn ? 'প্রতি পাতায়' : 'Per page'}</span></div>
+        </div>
       </div>
 
-      {items.length === 0 ? (
-        <div className="rounded-xl border border-line bg-surface px-6 py-14 text-center">
-          <p className="headline text-xl font-semibold text-ink">{dict.noResults}</p>
-          <p className="mt-1 text-[13.5px] text-muted">{dict.noResultsHint}</p>
-          <Link href="/" className="mt-4 inline-block rounded-full bg-ink px-4 py-1.5 text-[13px] font-semibold text-bg">
-            {dict.clearFilters}
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <NewsCard key={item.id} item={item} featured={item.id === featuredId} />
-          ))}
-        </div>
-      )}
+      <CategoryChips active={category} stats={stats} query={{ q, source, date, from, to }} />
 
-      <Pagination page={page} totalPages={totalPages} query={{ category, source, q }} />
+      <div className="monitor-filterbar">
+        <div className="monitor-resultcount">
+          {dict.showing} <strong>{items.length}</strong> {dict.of} <strong>{total}</strong> {dict.items}
+        </div>
+        <div className="monitor-filter-actions">
+          <DateFilter date={date} from={from} to={to} />
+          <details className="monitor-source-filter">
+            <summary className="monitor-select" aria-label={dict.filterBySource}>
+              {dict.filterBySource}: <strong>{source ?? dict.allCategories}</strong> <span aria-hidden>⌄</span>
+            </summary>
+            <div className="monitor-source-menu">
+              <Link href={buildHref({ ...filters, source: undefined })}>{dict.allCategories}</Link>
+              {sourceOptions.map((name) => (
+                <Link href={buildHref({ ...filters, source: name })} key={name} aria-current={source === name ? 'page' : undefined}>{name}</Link>
+              ))}
+            </div>
+          </details>
+          {filtering ? (
+            <Link href="/" className="monitor-clear-filters">{dict.clearFilters} ×</Link>
+          ) : null}
+        </div>
+      </div>
+
+      <NewsDashboard items={items} sources={sourcesResult.sources}>
+        <Pagination page={page} totalPages={totalPages} query={filters} />
+      </NewsDashboard>
     </div>
   );
-}
-
-function buildHref(query: { category?: string; q?: string; source?: string }): string {
-  const params = new URLSearchParams();
-  if (query.category && query.category !== 'All') params.set('category', query.category);
-  if (query.source) params.set('source', query.source);
-  if (query.q) params.set('q', query.q);
-  const qs = params.toString();
-  return qs ? `/?${qs}` : '/';
 }
