@@ -35,6 +35,9 @@ export function NewsDashboard({ items, sources, children }: Props) {
   const [saved, setSaved] = useState<NewsItem[]>([]);
   const [savedOnly, setSavedOnly] = useState(false);
   const [selected, setSelected] = useState<NewsItem | null>(null);
+  const [relatedResults, setRelatedResults] = useState<NewsItem[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedError, setRelatedError] = useState(false);
   const bn = UI_LANG === 'bn';
 
   useEffect(() => {
@@ -52,6 +55,26 @@ export function NewsDashboard({ items, sources, children }: Props) {
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelected(null); };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
+  }, [selected]);
+
+  useEffect(() => {
+    if (!selected) {
+      setRelatedResults([]);
+      return;
+    }
+    const controller = new AbortController();
+    setRelatedLoading(true);
+    setRelatedError(false);
+    setRelatedResults([]);
+    fetch('/api/related?id=' + encodeURIComponent(selected.id), { signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Related news unavailable');
+        return response.json() as Promise<{ related: NewsItem[] }>;
+      })
+      .then(data => { if (!controller.signal.aborted) setRelatedResults(data.related ?? []); })
+      .catch(() => { if (!controller.signal.aborted) setRelatedError(true); })
+      .finally(() => { if (!controller.signal.aborted) setRelatedLoading(false); });
+    return () => controller.abort();
   }, [selected]);
 
   const setMode = (next: View) => {
@@ -181,10 +204,11 @@ export function NewsDashboard({ items, sources, children }: Props) {
               <button className="coverage-close" onClick={() => setSelected(null)} aria-label="Close panel">×</button>
             </div>
             <h4 className="coverage-story-title">{selected.title}</h4>
-            <div className="coverage-source-count">{Math.max(0, relatedFor(selected).length - 1)} {bn ? 'সম্পর্কিত প্রতিবেদন' : 'related reports'}</div>
+            <div className="coverage-source-count">{relatedLoading ? 'Searching other publishers…' : relatedResults.length + ' related reports'}</div>
             <div className="coverage-reports">
-              {relatedFor(selected).length === 1 ? <p className="coverage-no-matches">No related news found</p> : null}
-              {relatedFor(selected).filter(article => article.id !== selected.id).map((article) => (
+              {!relatedLoading && !relatedError && relatedResults.length === 0 ? <p className="coverage-no-matches">No related news found</p> : null}
+              {relatedError ? <p className="coverage-no-matches">Could not check related news right now.</p> : null}
+              {relatedResults.map((article) => (
                 <a key={article.id} href={article.link} target="_blank" rel="noopener noreferrer nofollow" className="coverage-report">
                   <PublisherLogo name={article.source_name} sourceUrl={article.source_url} articleUrl={article.link} />
                   <div><strong>{article.source_name}</strong><time dateTime={article.published_at ?? article.created_at} title={fullDate(article.published_at ?? article.created_at)}>{relativeTime(article.published_at ?? article.created_at)}</time><p>{article.title}</p></div>
@@ -192,7 +216,7 @@ export function NewsDashboard({ items, sources, children }: Props) {
                 </a>
               ))}
             </div>
-            <p className="coverage-disclaimer">{bn ? 'শুধু এই পাতায় লোড হওয়া সংবাদের মধ্যে সতর্কতার সঙ্গে শিরোনাম মিলিয়ে দেখানো হয়েছে।' : 'Conservative matches from the currently loaded page only.'}</p>
+            <p className="coverage-disclaimer">{bn ? 'শুধু এই পাতায় লোড হওয়া সংবাদের মধ্যে সতর্কতার সঙ্গে শিরোনাম মিলিয়ে দেখানো হয়েছে।' : 'Matches are checked against other publishers in the database within a 72-hour window. Similarity matching may not find every report.'}</p>
           </aside>
         </div>
       ) : null}
