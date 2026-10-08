@@ -718,3 +718,121 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
   .publisher-logo-stable img.publisher-logo-asset,
   .monitor-source-sidebar .monitor-sidebar-source{transition:none}
 }
+
+/* Header-only visual refinements. Kalebrion is a licensed commercial typeface:
+   this declaration uses it ONLY when the site owner supplies a licensed font;
+   otherwise the existing bundled sans-serif fallback is retained. */
+.monitor-site-header .monitor-brand-kalebrion{
+  font-family:"Kalebrion","DM Sans",Inter,system-ui,sans-serif;
+  font-weight:400;
+  letter-spacing:.005em;
+}
+
+/* Category trigger: deep-blue background instead of white/red. Drawer,
+   filters, category badges and category selection logic remain unchanged. */
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle{
+  background:#092e66;
+  border-color:#092e66;
+  color:#fff;
+  box-shadow:0 1px 2px rgba(5,28,67,.13);
+  transition:background-color .18s ease,border-color .18s ease;
+}
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle:hover,
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle:focus-visible{
+  background:#124381;
+  border-color:#124381;
+}
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle :is(span,svg){
+  color:inherit;
+}
+.monitor-site-header .monitor-category-header-slot .monitor-category-current{
+  color:rgba(255,255,255,.8);
+}
+
+/* Real connection state stays the only source of truth for the Live label. */
+.monitor-realtime .monitor-live-indicator{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  height:30px;
+  width:auto;
+  padding:0 4px;
+  background:transparent;
+  border:0;
+  border-radius:8px;
+  white-space:nowrap;
+}
+.monitor-realtime .monitor-live-indicator .monitor-live-label{
+  font-size:10px;
+  line-height:1;
+  font-weight:750;
+  letter-spacing:.035em;
+  color:var(--muted);
+}
+.monitor-realtime .monitor-live-indicator.monitor-live-live .monitor-live-label{
+  color:#ba1e2e;
+}
+:root[data-theme="dark"] .monitor-realtime .monitor-live-indicator.monitor-live-live .monitor-live-label{
+  color:#ff858f;
+}
+
+/* New stories: compact, legible CTA; the existing onClick refresh is unchanged. */
+.monitor-realtime .monitor-new-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  padding:7px 12px 7px 8px;
+  min-height:38px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  color:#fff;
+  background:linear-gradient(115deg,#174da5 0%,#304eae 57%,#5b42a5 100%);
+  box-shadow:0 3px 9px rgba(34,64,148,.16);
+  text-align:left;
+  white-space:nowrap;
+  transition:filter .18s ease,box-shadow .18s ease;
+}
+.monitor-realtime .monitor-new-pill:hover:not(:disabled){
+  filter:brightness(1.09);
+  box-shadow:0 5px 14px rgba(34,64,148,.23);
+}
+.monitor-realtime .monitor-new-pill:disabled{
+  opacity:.65;
+  cursor:wait;
+}
+.monitor-realtime .monitor-update-count{
+  display:grid;
+  place-items:center;
+  height:23px;
+  min-width:25px;
+  padding:0 5px;
+  border-radius:7px;
+  background:rgba(255,255,255,.19);
+  font-size:12px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.monitor-realtime .monitor-update-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  line-height:1.15;
+}
+.monitor-realtime .monitor-update-copy strong{font-size:11px;font-weight:800}
+.monitor-realtime .monitor-update-copy small{font-size:9px;font-weight:500;opacity:.87}
+.monitor-realtime .monitor-update-arrow{font-size:18px;font-weight:700;line-height:1;opacity:.87}
+@media(max-width:767px){
+  .monitor-realtime .monitor-new-pill{gap:5px;min-height:31px;padding:4px 6px}
+  .monitor-realtime .monitor-update-count{height:19px;min-width:19px;font-size:10px;border-radius:5px}
+  .monitor-realtime .monitor-update-copy strong{font-size:9px}
+  .monitor-realtime .monitor-update-copy small{display:none}
+  .monitor-realtime .monitor-update-arrow{display:none}
+  .monitor-realtime .monitor-live-indicator{gap:4px;padding:0 2px}
+  .monitor-realtime .monitor-live-indicator .monitor-live-label{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .monitor-realtime .monitor-new-pill,
+  .monitor-site-header .monitor-category-header-slot .monitor-category-toggle{transition:none}
+}
