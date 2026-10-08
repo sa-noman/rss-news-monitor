@@ -22,5 +22,41 @@ export function articleImageFromHtml(html: string, base: string): string | null 
       } catch { /* invalid URL */ }
     }
   }
+  // Some publishers use NewsArticle JSON-LD for the original lead image.
+  const blocks = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const imageValue = (v: unknown): string | null => {
+    if (typeof v === 'string') return v;
+    if (Array.isArray(v)) return v.map(imageValue).find(Boolean) ?? null;
+    if (v && typeof v === 'object') {
+      const obj = v as Record<string, unknown>;
+      return imageValue(obj.url) || imageValue(obj.contentUrl);
+    }
+    return null;
+  };
+  const locate = (v: unknown): string | null => {
+    if (Array.isArray(v)) return v.map(locate).find(Boolean) ?? null;
+    if (!v || typeof v !== 'object') return null;
+    const obj = v as Record<string, unknown>;
+    const kind = String(obj['@type'] ?? '').toLowerCase();
+    if (kind.includes('article')) {
+      const img = imageValue(obj.image) || imageValue(obj.thumbnailUrl);
+      if (img) return img;
+    }
+    for (const child of Object.values(obj)) {
+      if (child && typeof child === 'object') {
+        const result = locate(child);
+        if (result) return result;
+      }
+    }
+    return null;
+  };
+  for (const block of blocks.slice(0, 8)) {
+    try {
+      const match = locate(JSON.parse(block[1]));
+      if (!match) continue;
+      const url = new URL(match, base);
+      if (['https:', 'http:'].includes(url.protocol) && !/(?:logo|favicon|icon|placeholder|avatar)/i.test(url.pathname)) return url.toString();
+    } catch { /* unparseable publisher metadata */ }
+  }
   return null;
 }
