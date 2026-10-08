@@ -1,5 +1,5 @@
 /**
- * UI strings. Set NEXT_PUBLIC_UI_LANG=bn (default) or =en in the Vercel env.
+ * UI strings. Set NEXT_PUBLIC_UI_LANG=bn for Bengali; English is the default.
  */
 export type Lang = 'bn' | 'en';
 
@@ -126,7 +126,7 @@ const DICT = {
 /** Widened to plain strings so both dictionaries share one type. */
 export type Dict = Record<keyof (typeof DICT)['bn'], string>;
 
-export const UI_LANG: Lang = process.env.NEXT_PUBLIC_UI_LANG === 'en' ? 'en' : 'bn';
+export const UI_LANG: Lang = process.env.NEXT_PUBLIC_UI_LANG === 'bn' ? 'bn' : 'en';
 
 export function t(): Dict {
   return DICT[UI_LANG];
