@@ -54,8 +54,19 @@ function CategorySidebar({ active, dict, chips, query }: {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    try { if (window.sessionStorage.getItem('monitor-category-drawer-open') === 'yes') setOpen(true); }
+    catch { /* session storage may be disabled */ }
+  }, []);
+
+  const toggle = (value: boolean) => {
+    setOpen(value);
+    try { window.sessionStorage.setItem('monitor-category-drawer-open', value ? 'yes' : 'no'); }
+    catch { /* storage may be disabled */ }
+  };
+
+  useEffect(() => {
     if (!open) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') toggle(false); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
@@ -63,7 +74,7 @@ function CategorySidebar({ active, dict, chips, query }: {
   return (
     <div className="monitor-category-menu">
       <button type="button" className="monitor-category-toggle" aria-expanded={open}
-        aria-controls="monitor-category-sidebar" onClick={() => setOpen(value => !value)}>
+        aria-controls="monitor-category-sidebar" onClick={() => toggle(!open)}>
         <span className="monitor-category-menu-icon" aria-hidden>☰</span>
         <span>{dict.filterByCategory}</span>
         <span className="monitor-category-current">{active === 'All' ? dict.allCategories : categoryLabel(active)}</span>
@@ -71,7 +82,7 @@ function CategorySidebar({ active, dict, chips, query }: {
       </button>
       {open ? (
         <>
-          <button type="button" className="monitor-category-backdrop" aria-label="Close category menu" onClick={() => setOpen(false)} />
+          <button type="button" className="monitor-category-backdrop" aria-label="Close category menu" onClick={() => toggle(false)} />
           <aside id="monitor-category-sidebar" className="monitor-category-drawer" aria-label={dict.filterByCategory}>
             <div className="monitor-category-drawer-header">
               <div><h2>{dict.filterByCategory}</h2><p>{chips.length - 1} categories</p></div>
