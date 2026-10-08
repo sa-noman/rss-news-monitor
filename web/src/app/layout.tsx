@@ -20,10 +20,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const activeCount = sources.filter((s) => s.is_active).length;
 
   return (
-    <html lang={UI_LANG === 'bn' ? 'bn' : 'en'}>
+    <html lang={UI_LANG === 'bn' ? 'bn' : 'en'} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: "try{document.documentElement.dataset.theme=localStorage.getItem('news-monitor-theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}" }} />
+      </head>
       <body className="flex min-h-screen flex-col">
         <Header sourceCount={activeCount} query={{}} />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">{children}</main>
+        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">{children}</main>
         <Footer sourceCount={activeCount} />
       </body>
     </html>
