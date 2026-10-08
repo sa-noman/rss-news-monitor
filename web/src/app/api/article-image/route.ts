@@ -52,6 +52,7 @@ async function washingtonPostFeedImage(articleUrl: string): Promise<string | nul
     'https://feeds.washingtonpost.com/rss/world',
     'https://feeds.washingtonpost.com/rss/politics',
     'https://feeds.washingtonpost.com/rss/national',
+    'https://feeds.washingtonpost.com/rss/business',
   ];
   const article = new URL(articleUrl);
   const articlePath = article.pathname.replace(/\/+$/, '');
@@ -65,7 +66,13 @@ async function washingtonPostFeedImage(articleUrl: string): Promise<string | nul
         const link = item.match(/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/i)?.[1]?.replace(/<!\[CDATA\[|\]\]>/g, '').trim();
         if (!link) continue;
         let match = false;
-        try { match = new URL(link).pathname.replace(/\/+$/, '') === articlePath; } catch { /* ignore invalid link */ }
+        try {
+          const feedArticle = new URL(link);
+          const feedPath = feedArticle.pathname.replace(/\/+$/, '');
+          // Syndicated Washington Post links may include a tracking suffix or
+          // different feed host, but their original story slug is retained.
+          match = feedPath === articlePath || (articlePath.length > 45 && feedPath.endsWith(articlePath));
+        } catch { /* ignore invalid link */ }
         if (!match) continue;
         const tags = [
           ...item.matchAll(/<(?:media:content|media:thumbnail|enclosure)\b([^>]*?)\/?>/gi),
@@ -87,6 +94,46 @@ async function washingtonPostFeedImage(articleUrl: string): Promise<string | nul
         }
       }
     } catch { /* feeds can be temporarily inaccessible */ }
+  }
+  return null;
+}
+
+/** Match only a real Economist article in a feed; never reuse a section image. */
+async function economistFeedImage(articleUrl: string): Promise<string | null> {
+  const feeds = [
+    'https://www.economist.com/the-world-this-week/rss.xml',
+    'https://www.economist.com/business/rss.xml',
+    'https://www.economist.com/international/rss.xml',
+    'https://www.economist.com/united-states/rss.xml',
+    'https://www.economist.com/finance-and-economics/rss.xml',
+  ];
+  const target = new URL(articleUrl).pathname.replace(/\/+$/, '');
+  if (target.split('/').filter(Boolean).length < 3) return null; // section pages have no article hero
+  for (const feed of feeds) {
+    try {
+      const res = await fetch(feed, { signal: AbortSignal.timeout(2300), next: { revalidate: 300 } });
+      if (!res.ok) continue;
+      const xml = (await res.text()).slice(0, 450_000);
+      for (const item of xml.match(/<item\b[\s\S]*?<\/item>/gi) ?? []) {
+        const rawLink = item.match(/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/i)?.[1]?.trim();
+        if (!rawLink) continue;
+        let isSame = false;
+        try {
+          const link = new URL(rawLink.replace(/&amp;/gi, '&'));
+          isSame = link.pathname.replace(/\/+$/, '') === target;
+        } catch { /* invalid URL */ }
+        if (!isSame) continue;
+        for (const tag of item.matchAll(/<(?:media:content|media:thumbnail|enclosure)\b([^>]*?)\/?>/gi)) {
+          const attrs = tag[1] ?? '';
+          const type = attrs.match(/\btype=["']([^"']+)["']/i)?.[1];
+          if (type && !type.startsWith('image/')) continue;
+          const raw = attrs.match(/\burl=["']([^"']+)["']/i)?.[1];
+          if (!raw) continue;
+          const image = new URL(raw.replace(/&amp;/gi, '&'), feed);
+          if (image.protocol === 'https:' && !/(?:logo|icon|avatar|placeholder)/i.test(image.pathname)) return image.toString();
+        }
+      }
+    } catch { /* feed unavailable */ }
   }
   return null;
 }
@@ -124,6 +171,10 @@ export async function GET(req: NextRequest) {
     }
     if (new URL(data.link).hostname.endsWith('washingtonpost.com')) {
       const rssImage = await washingtonPostFeedImage(data.link);
+      if (rssImage) return NextResponse.json({ image: rssImage }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
+    }
+    if (new URL(data.link).hostname.endsWith('economist.com')) {
+      const rssImage = await economistFeedImage(data.link);
       if (rssImage) return NextResponse.json({ image: rssImage }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
     }
     const controller = new AbortController();
