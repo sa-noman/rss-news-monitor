@@ -137,18 +137,21 @@ async function fetchFeedText(url: string, timeoutMs: number): Promise<FetchOutco
 
 /** Extract the original publisher's article preview image, not a generated illustration. */
 export function articleImageFromHtml(html: string, baseUrl: string): string | null {
-  const tags = html.match(/<meta\\b[^>]*>/gi) ?? [];
-  const readAttribute = (tag: string, key: string): string | null => {
-    const escaped = key.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
-    const match = new RegExp('(?:^|\\\\s)' + escaped + '\\\\s*=\\\\s*(?:"([^"]*)"|\\'([^\\']*)\\')', 'i').exec(tag);
-    return match ? decodeEntities(match[1] ?? match[2] ?? '') : null;
+  const tags = html.match(/<meta\b[^>]*>/gi) ?? [];
+  const attr = (tag: string, key: string): string | null => {
+    const attrs = tag.match(/([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g) ?? [];
+    for (const token of attrs) {
+      const parsed = /^([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')$/.exec(token);
+      if (parsed?.[1].toLowerCase() === key) return decodeEntities(parsed[2] ?? parsed[3] ?? '');
+    }
+    return null;
   };
   for (const key of ['og:image:secure_url', 'og:image', 'twitter:image', 'twitter:image:src']) {
     for (const tag of tags) {
-      const property = (readAttribute(tag, 'property') ?? readAttribute(tag, 'name') ?? '').toLowerCase();
+      const property = (attr(tag, 'property') ?? attr(tag, 'name') ?? '').toLowerCase();
       if (property !== key) continue;
-      const image = toAbsoluteUrl(readAttribute(tag, 'content'), baseUrl);
-      if (image && !/\\.(svg)(?:[?#]|$)/i.test(image) && !/\\b(?:logo|icon|avatar|placeholder|default-image)\\b/i.test(image)) return image;
+      const image = toAbsoluteUrl(attr(tag, 'content'), baseUrl);
+      if (image && !/\.svg(?:[?#]|$)/i.test(image) && !/\b(?:logo|icon|avatar|placeholder|default-image)\b/i.test(image)) return image;
     }
   }
   return null;
