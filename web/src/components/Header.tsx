@@ -17,7 +17,7 @@ export function Header({ sourceCount, query }: {
       <div className="monitor-header-inner">
         <div className="monitor-brand-row">
           <div id="monitor-category-trigger" className="monitor-category-header-slot" />
-          <Link href="/" className="monitor-brand headline">Global News Monitor</Link>
+          <Link href="/" className="monitor-brand headline monitor-brand-kalebrion">Global News Monitor</Link>
           <nav className="monitor-top-nav" aria-label="Main navigation">
             <Link href="/">{dict.latest}</Link>
             <Link href="/sources">{dict.sourceHealth}</Link>
