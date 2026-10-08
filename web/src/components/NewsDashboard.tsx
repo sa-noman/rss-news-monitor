@@ -1,0 +1,197 @@
+'use client';
+
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import type { FeedSourceRow, NewsItem } from '@/lib/types';
+import { fullDate, relativeTime } from '@/lib/format';
+import { UI_LANG } from '@/lib/i18n';
+import { NewsCard } from './NewsCard';
+import { PublisherLogo } from './PublisherLogo';
+
+type View = 'list' | 'grid';
+const VIEW_KEY = 'news-monitor-view';
+const SAVED_KEY = 'news-monitor-bookmarks-v1';
+
+function normalizedHeadline(title: string): string {
+  return title.toLocaleLowerCase()
+    .normalize('NFKC')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+interface Props {
+  items: NewsItem[];
+  sources: FeedSourceRow[];
+  children?: ReactNode;
+}
+
+/**
+ * Presentation-only client state. News, pagination, and all server filters still
+ * come from the existing Next.js page and Supabase query.
+ */
+export function NewsDashboard({ items, sources, children }: Props) {
+  const [view, setView] = useState<View>('list');
+  const [saved, setSaved] = useState<NewsItem[]>([]);
+  const [savedOnly, setSavedOnly] = useState(false);
+  const [selected, setSelected] = useState<NewsItem | null>(null);
+  const bn = UI_LANG === 'bn';
+
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(VIEW_KEY) === 'grid') setView('grid');
+      const raw = JSON.parse(window.localStorage.getItem(SAVED_KEY) ?? '[]');
+      if (Array.isArray(raw)) {
+        setSaved(raw.filter((value): value is NewsItem => Boolean(value && typeof value.id === 'string' && typeof value.link === 'string' && typeof value.title === 'string')));
+      }
+    } catch { /* storage disabled or stale data */ }
+  }, []);
+
+  useEffect(() => {
+    if (!selected) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelected(null); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [selected]);
+
+  const setMode = (next: View) => {
+    setView(next);
+    try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* storage disabled */ }
+  };
+
+  const toggleBookmark = (item: NewsItem) => {
+    setSaved((previous) => {
+      const updated = previous.some((x) => x.id === item.id)
+        ? previous.filter((x) => x.id !== item.id)
+        : [item, ...previous];
+      try { window.localStorage.setItem(SAVED_KEY, JSON.stringify(updated)); } catch { /* storage disabled */ }
+      return updated;
+    });
+  };
+
+  const visible = savedOnly ? saved : items;
+  // Only exact normalized matching headlines from *different publishers* are
+  // grouped. Never invent a match when no grouping data exists.
+  const groups = useMemo(() => {
+    const results = new Map<string, NewsItem[]>();
+    for (const article of visible) {
+      const key = normalizedHeadline(article.title);
+      const group = results.get(key) ?? [];
+      group.push(article);
+      results.set(key, group);
+    }
+    return results;
+  }, [visible]);
+  const relatedFor = (article: NewsItem): NewsItem[] => {
+    const matches = groups.get(normalizedHeadline(article.title)) ?? [];
+    return new Set(matches.map((x) => x.source_name)).size > 1 ? matches : [];
+  };
+
+  const activeSources = sources.filter((s) => s.is_active);
+  const uniqueSources = activeSources.filter((s, i) => activeSources.findIndex((x) => x.name === s.name) === i);
+
+  return (
+    <section className={'monitor-dashboard ' + (view === 'grid' ? 'view-grid' : 'view-list')}>
+      <div className="monitor-feed-heading">
+        <div className="monitor-feed-title">
+          <h2>{savedOnly ? (bn ? 'সংরক্ষিত সংবাদ' : 'Saved stories') : (bn ? 'সর্বশেষ পর্যবেক্ষণ' : 'Latest coverage')}</h2>
+          <span>{savedOnly ? saved.length : items.length} {bn ? 'সংবাদ' : 'stories'}</span>
+        </div>
+        <div className="monitor-feed-actions">
+          <button className={'saved-filter ' + (savedOnly ? 'is-active' : '')} type="button"
+            aria-pressed={savedOnly} onClick={() => { setSavedOnly(!savedOnly); setSelected(null); }}>
+            <svg viewBox="0 0 24 24" fill={savedOnly ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" aria-hidden><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3h11A1.5 1.5 0 0 1 19 4.5V21l-7-4.5L5 21z"/></svg>
+            {bn ? 'বুকমার্ক' : 'Bookmarks'} {saved.length > 0 ? '(' + saved.length + ')' : ''}
+          </button>
+          <div className="view-switcher" role="group" aria-label="News layout">
+            <button type="button" aria-pressed={view === 'list'} className={view === 'list' ? 'active' : ''} onClick={() => setMode('list')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M4 5h4v4H4zM11 6h9M4 14h4v4H4zM11 15h9"/></svg>
+              {bn ? 'লিস্ট' : 'List'}
+            </button>
+            <button type="button" aria-pressed={view === 'grid'} className={view === 'grid' ? 'active' : ''} onClick={() => setMode('grid')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              {bn ? 'গ্রিড' : 'Grid'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="monitor-columns">
+        <div className="monitor-articles">
+          {visible.length > 0 ? (
+            <div className="monitor-feed">
+              {visible.map((item, i) => {
+                const related = relatedFor(item);
+                return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0}
+                  bookmarked={saved.some((x) => x.id === item.id)}
+                  onBookmark={toggleBookmark}
+                  relatedCount={related.length}
+                  onRelated={related.length > 1 ? setSelected : undefined} />;
+              })}
+            </div>
+          ) : (
+            <div className="monitor-empty">
+              <h3>{savedOnly ? (bn ? 'কোনো বুকমার্ক নেই' : 'No saved stories yet') : (bn ? 'কোনো সংবাদ নেই' : 'No stories found')}</h3>
+              <p>{savedOnly ? (bn ? 'সংবাদের বুকমার্ক আইকন চাপুন।' : 'Bookmark articles to find them here later.') : (bn ? 'অন্য ফিল্টার ব্যবহার করুন।' : 'Try another filter.')}</p>
+              {savedOnly ? <button type="button" onClick={() => setSavedOnly(false)}>{bn ? 'সব সংবাদ দেখুন' : 'View latest stories'}</button> : null}
+            </div>
+          )}
+          {!savedOnly ? children : null}
+        </div>
+
+        <aside className="monitor-source-sidebar" aria-label={bn ? 'সোর্স মনিটরিং' : 'Source monitoring'}>
+          <div className="monitor-sidebar-heading">
+            <div>
+              <h3>{bn ? 'সোর্স মনিটরিং' : 'Source monitoring'}</h3>
+              <p>{activeSources.length} {bn ? 'সক্রিয় সোর্স' : 'active sources'}</p>
+            </div>
+            <Link href="/sources" aria-label="View all source status">↗</Link>
+          </div>
+          <div className="monitor-sidebar-list">
+            {uniqueSources.slice(0, 10).map((source) => (
+              <div className="monitor-sidebar-source" key={source.name}>
+                <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
+                <div className="monitor-sidebar-source-text">
+                  <strong title={source.name}>{source.name}</strong>
+                  <small>{source.last_checked_at ? (bn ? 'চেক ' : 'Checked ') + relativeTime(source.last_checked_at) : (bn ? 'সক্রিয় ফিড' : 'Active feed')}</small>
+                </div>
+                <span className="monitor-source-active" title={bn ? 'সক্রিয়' : 'Active'} />
+              </div>
+            ))}
+          </div>
+          <Link href="/sources" className="monitor-all-sources">{bn ? 'সব সোর্সের অবস্থা দেখুন' : 'View all source health'} →</Link>
+          <div className="monitor-sidebar-note">
+            <strong>{bn ? 'মনিটরিং' : 'Monitoring'}</strong>
+            <span>{bn ? 'সর্বশেষ সংবাদ ও সোর্সের অবস্থা' : 'Latest headlines and source status'}</span>
+          </div>
+        </aside>
+      </div>
+
+      {selected && relatedFor(selected).length > 1 ? (
+        <div className="coverage-backdrop" onClick={() => setSelected(null)}>
+          <aside className="coverage-drawer" role="dialog" aria-modal="true" aria-label={bn ? 'একই সংবাদের সোর্স' : 'Related coverage'} onClick={(event) => event.stopPropagation()}>
+            <div className="coverage-drawer-top">
+              <div>
+                <span className="coverage-kicker">{bn ? 'একই শিরোনামের প্রতিবেদন' : 'Matching reports'}</span>
+                <h3>{bn ? 'একাধিক সোর্স' : 'Related coverage'}</h3>
+              </div>
+              <button className="coverage-close" onClick={() => setSelected(null)} aria-label="Close panel">×</button>
+            </div>
+            <h4 className="coverage-story-title">{selected.title}</h4>
+            <div className="coverage-source-count">{relatedFor(selected).length} {bn ? 'সোর্সে পাওয়া গেছে' : 'publisher reports'}</div>
+            <div className="coverage-reports">
+              {relatedFor(selected).map((article) => (
+                <a key={article.id} href={article.link} target="_blank" rel="noopener noreferrer nofollow" className="coverage-report">
+                  <PublisherLogo name={article.source_name} sourceUrl={article.source_url} articleUrl={article.link} />
+                  <div><strong>{article.source_name}</strong><time dateTime={article.published_at ?? article.created_at} title={fullDate(article.published_at ?? article.created_at)}>{relativeTime(article.published_at ?? article.created_at)}</time><p>{article.title}</p></div>
+                  <span aria-hidden>↗</span>
+                </a>
+              ))}
+            </div>
+            <p className="coverage-disclaimer">{bn ? 'শুধু বর্তমানে পাওয়া হুবহু মিলে যাওয়া শিরোনাম দেখানো হয়েছে।' : 'Matches are limited to identical normalized headlines in the loaded results.'}</p>
+          </aside>
+        </div>
+      ) : null}
+    </section>
+  );
+}
