@@ -7,6 +7,7 @@ import { UI_LANG } from '@/lib/i18n';
 interface Props { date?: string; from?: string; to?: string; }
 export function DateFilter({ date, from, to }: Props) {
   const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState(date ?? 'all');
   const [custom, setCustom] = useState(date === 'custom');
   const [start, setStart] = useState(from ?? '');
   const [end, setEnd] = useState(to ?? '');
@@ -29,9 +30,10 @@ export function DateFilter({ date, from, to }: Props) {
       <select
         id="news-date-filter"
         className="monitor-select"
-        value={date ?? 'all'}
+        value={selectedDate}
         onChange={(event) => {
           const value = event.target.value;
+          setSelectedDate(value);
           setCustom(value === 'custom');
           if (value !== 'custom') go(value);
         }}
@@ -47,7 +49,7 @@ export function DateFilter({ date, from, to }: Props) {
         <form className="custom-range" onSubmit={(event) => { event.preventDefault(); go('custom', start, end); }}>
           <input aria-label="From date" type="date" value={start} onChange={(e) => setStart(e.target.value)} />
           <input aria-label="To date" type="date" min={start || undefined} value={end} onChange={(e) => setEnd(e.target.value)} />
-          <button type="submit" disabled={!start && !end}>{bn ? 'প্রয়োগ' : 'Apply'}</button>
+          <button type="submit" disabled={(!start && !end) || (Boolean(start && end) && start > end)}>{bn ? 'প্রয়োগ' : 'Apply'}</button>
         </form>
       ) : null}
     </div>
