@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { categoryColor, fullDate, relativeTime } from '@/lib/format';
 import { categoryLabel, t } from '@/lib/i18n';
 import type { NewsItem } from '@/lib/types';
@@ -19,19 +19,45 @@ export function NewsCard({
   item, featured = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
 }: MonitorCardProps) {
   const [brokenImage, setBrokenImage] = useState(false);
+  const [foundImage, setFoundImage] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (item.image_url) return;
+    const media = mediaRef.current;
+    if (!media) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, {rootMargin:'140px'});
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, [item.id, item.image_url]);
+  useEffect(() => {
+    if (!visible || item.image_url || !/^[0-9a-f-]{36}$/i.test(item.id)) return;
+    const controller = new AbortController();
+    fetch('/api/article-image?id=' + encodeURIComponent(item.id), {signal:controller.signal})
+      .then(res => res.ok ? res.json() as Promise<{image:string|null}> : {image:null})
+      .then(data => {if (!controller.signal.aborted && data.image) setFoundImage(data.image);})
+      .catch(() => {});
+    return () => controller.abort();
+  }, [visible,item.id,item.image_url]);
   const dict = t();
   const color = categoryColor(item.category);
   const publishDate = item.published_at ?? item.created_at;
   const timeText = relativeTime(publishDate);
-  const imageAvailable = Boolean(item.image_url && !brokenImage);
+  const resolvedImage = item.image_url || foundImage;
+  const imageAvailable = Boolean(resolvedImage && !brokenImage);
 
   return (
     <article className={'monitor-card card ' + (featured ? 'monitor-featured ' : '')}>
-      <div className="monitor-media" style={{ backgroundColor: color + '17' }}>
+      <div ref={mediaRef} className="monitor-media" style={{ backgroundColor: color + '17' }}>
         {imageAvailable ? (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-image-link" aria-label={item.title}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="monitor-photo" src={item.image_url!} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
+            <img className="monitor-photo" src={resolvedImage!} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
           </a>
         ) : (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-logo-fallback" aria-label={item.title}>
