@@ -188,7 +188,7 @@ export function NewsDashboard({ items, sources, children, focusedSource }: Props
             <div className="monitor-feed">
               {visible.map((item, i) => {
                 const related = relatedFor(item);
-                return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0}
+                return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0} priority={!savedOnly && i === 0}
                   focused={Boolean(jumpReady && focusedSource && item.source_name === focusedSource && i === 0)}
                   bookmarked={saved.some((x) => x.id === item.id)}
                   onBookmark={toggleBookmark}
