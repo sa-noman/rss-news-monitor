@@ -22,10 +22,11 @@ export function NewsCard({
   const [brokenImage, setBrokenImage] = useState(false);
   const [foundImage, setFoundImage] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+  const rightsReviewedSource = item.source_name === 'The Washington Post';
   useEffect(() => { setBrokenImage(false); setFoundImage(null); setVisible(false); }, [item.id]);
   const mediaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (item.image_url) return;
+    if (item.image_url && !rightsReviewedSource) return;
     const media = mediaRef.current;
     if (!media) return;
     const observer = new IntersectionObserver(entries => {
@@ -36,23 +37,23 @@ export function NewsCard({
     }, {rootMargin:'140px'});
     observer.observe(media);
     return () => observer.disconnect();
-  }, [item.id, item.image_url]);
+  }, [item.id, item.image_url, rightsReviewedSource]);
   useEffect(() => {
-    if (!visible || item.image_url || !/^[0-9a-f-]{36}$/i.test(item.id)) return;
+    if (!visible || (item.image_url && !rightsReviewedSource) || !/^[0-9a-f-]{36}$/i.test(item.id)) return;
     const controller = new AbortController();
     fetch('/api/article-image?id=' + encodeURIComponent(item.id), {signal:controller.signal})
       .then(res => res.ok ? res.json() as Promise<{image:string|null}> : {image:null})
       .then(data => {if (!controller.signal.aborted && data.image) setFoundImage(data.image);})
       .catch(() => {});
     return () => controller.abort();
-  }, [visible,item.id,item.image_url]);
+  }, [visible,item.id,item.image_url,rightsReviewedSource]);
   const dict = t();
   const color = categoryColor(item.category);
   const publishDate = item.published_at ?? item.created_at;
   const timeText = relativeTime(publishDate);
   // Always prefer the original image already collected from RSS.
   // Only request a missing photo from the publisher when RSS supplied none.
-  const resolvedImage = (item.image_url?.trim() || foundImage) ?? null;
+  const resolvedImage = rightsReviewedSource ? foundImage : ((item.image_url?.trim() || foundImage) ?? null);
   const imageAvailable = Boolean(resolvedImage && !brokenImage);
 
   return (
