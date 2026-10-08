@@ -39,13 +39,14 @@ const workingLogoStage = new Map<string, 0 | 1>();
 
 export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: PublisherLogoProps) {
   const domain = canonicalDomains[name] ?? hostname(sourceUrl || articleUrl);
-  const [stage, setStage] = useState<Stage>(() => workingLogoStage.get(domain) ?? 0);
+  const cacheKey = domain + (large ? ':large' : ':small');
+  const [stage, setStage] = useState<Stage>(() => workingLogoStage.get(cacheKey) ?? 0);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setReady(false);
-    setStage(workingLogoStage.get(domain) ?? 0);
-  }, [domain]);
+    setStage(workingLogoStage.get(cacheKey) ?? 0);
+  }, [cacheKey]);
 
   // The centralized favicon endpoint is fast and browser-cacheable. Try the
   // publisher touch icon only if that single request fails or is too small.
@@ -92,7 +93,7 @@ export function PublisherLogo({ name, sourceUrl, articleUrl, large = false }: Pu
               imageFailed();
               return;
             }
-            workingLogoStage.set(domain, stage as 0 | 1);
+            workingLogoStage.set(cacheKey, stage as 0 | 1);
             setReady(true);
           }}
           onError={imageFailed}
