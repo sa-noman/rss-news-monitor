@@ -644,7 +644,7 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
     row-gap:23px;
   }
   .view-grid .monitor-card.monitor-featured {
-    grid-column:span 1;
+    grid-column:span 2;
   }
   .view-grid .monitor-card,
   .view-grid .monitor-card.monitor-featured {
