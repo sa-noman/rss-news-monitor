@@ -529,3 +529,667 @@ body{font-family:Inter,"DM Sans","Noto Sans Bengali","Hind Siliguri",system-ui,s
 .monitor-site-header.monitor-toolbar-hidden .monitor-brand-row{min-height:49px}
 .monitor-site-header.monitor-toolbar-hidden .monitor-brand{font-size:18px}
 }
+
+/* Publisher logos: show true-resolution assets without pixelation. */
+.publisher-logo img{width:100%;height:100%;max-width:88%;max-height:88%;object-fit:contain}
+.publisher-logo-large{overflow:hidden}
+.publisher-logo-large .publisher-sharp-wordmark{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:9px;white-space:normal;text-align:center;overflow-wrap:anywhere;font-family:Arial,Helvetica,sans-serif;font-size:clamp(12px,1.2vw,19px);font-weight:800;letter-spacing:-.02em;line-height:1.15;color:#1d3962}
+@media(max-width:767px){.publisher-logo-large .publisher-sharp-wordmark{font-size:11px;padding:6px}}
+
+/* Keep fallback initials centered, entirely visible, and independent of headline length. */
+.publisher-logo-large .publisher-sharp-wordmark{display:flex;align-items:center;justify-content:center;overflow:hidden;overflow-wrap:normal;word-break:normal;white-space:nowrap;width:100%;height:100%;padding:6px;font-size:clamp(23px,3vw,39px);font-weight:800;line-height:1;letter-spacing:-.04em}
+@media(max-width:767px){.publisher-logo-large .publisher-sharp-wordmark{font-size:24px;padding:4px}}
+
+/* ONLY the enlarged logo inside a news-card media fallback.
+   Sidebar publisher logos are intentionally left untouched. */
+.monitor-card .monitor-logo-fallback .publisher-logo-large{width:108px;height:108px;border-radius:15px}
+.monitor-card .monitor-logo-fallback .publisher-logo-large .publisher-sharp-wordmark{font-size:clamp(21px,2.5vw,33px)}
+@media(max-width:767px){
+  .monitor-card .monitor-logo-fallback .publisher-logo-large{width:63px;height:63px;border-radius:10px}
+  .monitor-card .monitor-logo-fallback .publisher-logo-large .publisher-sharp-wordmark{font-size:21px}
+}
+
+/* Source-monitoring jump: gentle card flip/reveal on the latest article. */
+.monitor-source-sidebar .monitor-source-jump{font-weight:700;font-size:13px;color:var(--text);text-decoration:none;display:inline-block;transition:color .16s ease,transform .16s ease}
+.monitor-source-sidebar .monitor-source-jump:hover{color:var(--accent);transform:translateX(3px)}
+.monitor-source-sidebar .monitor-source-jump:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+#latest-source-story{scroll-margin-top:125px}
+.monitor-source-focused{animation:monitor-source-flip .85s cubic-bezier(.2,.75,.2,1) both;transform-origin:center center;backface-visibility:hidden}
+@keyframes monitor-source-flip{
+  0%{transform:perspective(1200px) rotateX(-10deg) translateY(14px);opacity:.68}
+  65%{transform:perspective(1200px) rotateX(2deg) translateY(0);opacity:1}
+  100%{transform:perspective(1200px) rotateX(0) translateY(0);opacity:1}
+}
+@media(prefers-reduced-motion:reduce){.monitor-source-focused{animation:none}.monitor-source-sidebar .monitor-source-jump{transition:none}}
+
+/* Selected source navigation: soft highlight, no layout shift or card rotation. */
+.monitor-source-sidebar .monitor-source-selected{background:color-mix(in srgb,#3575d0 8%,var(--surface));border-radius:9px;padding-left:9px;padding-right:9px;margin-left:-9px;margin-right:-9px;box-shadow:inset 3px 0 #3979ce}
+.monitor-source-sidebar .monitor-source-selected .monitor-source-jump{color:#2362b6}
+.monitor-source-sidebar .monitor-source-selected .monitor-source-jump:hover{transform:none}
+.monitor-source-focused{animation:source-focus-glow 1.15s ease-out both;transform:none!important}
+@keyframes source-focus-glow{
+  0%{box-shadow:0 0 0 0 rgba(48,120,210,.6),inset 0 0 0 2px rgba(48,120,210,.8)}
+  45%{box-shadow:0 0 0 5px rgba(48,120,210,.18),inset 0 0 0 2px rgba(48,120,210,.35)}
+  100%{box-shadow:0 0 0 0 rgba(48,120,210,0),inset 0 0 0 1px rgba(48,120,210,.2)}
+}
+@media(prefers-reduced-motion:reduce){.monitor-source-focused{animation:none;outline:2px solid #3979ce}}
+
+/* Expand Source Monitoring in place; only the source rows get their own scroll. */
+.monitor-source-sidebar .monitor-sidebar-list {
+  transition: max-height .38s cubic-bezier(.22,.75,.25,1);
+}
+.monitor-source-sidebar .monitor-sidebar-list-expanded{
+  /* More room than the collapsed ten rows; never visually shrink on Expand. */
+  max-height:1050px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+  padding-right:5px;
+}
+.monitor-source-sidebar .monitor-sidebar-list-expanded .monitor-sidebar-source:nth-child(n+11){
+  animation:monitor-source-row-reveal .35s ease-out both;
+}
+@keyframes monitor-source-row-reveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){
+  .monitor-source-sidebar .monitor-sidebar-list{transition:none}
+  .monitor-source-sidebar .monitor-sidebar-list-expanded .monitor-sidebar-source:nth-child(n+11){animation:none}
+}
+.monitor-source-sidebar .monitor-source-expand{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+  border:0;
+  background:none;
+  font:inherit;
+  text-align:left;
+  padding:0;
+}
+.monitor-source-sidebar .monitor-source-expand:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:4px;
+  border-radius:3px;
+}
+
+/* Definitive source expand: the list's measured height grows from 10 to 14
+   visible rows, with additional rows accessible via its own scrollbar. */
+.monitor-source-sidebar #monitor-sidebar-source-list{
+  box-sizing:content-box;
+  max-height:none!important;
+  min-height:0!important;
+  overflow:hidden;
+  transition:height .34s cubic-bezier(.2,.7,.2,1);
+}
+.monitor-source-sidebar #monitor-sidebar-source-list.monitor-sidebar-list-expanded{
+  max-height:none!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden;
+}
+@media(prefers-reduced-motion:reduce){
+  .monitor-source-sidebar #monitor-sidebar-source-list{transition:none}
+}
+
+/* Desktop Grid polish only: balanced card widths with more breathing room. */
+@media (min-width:768px) {
+  .view-grid .monitor-articles {
+    max-width:1220px;
+    margin-inline:auto;
+  }
+  .view-grid .monitor-feed {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    column-gap:22px;
+    row-gap:23px;
+  }
+  .view-grid .monitor-card.monitor-featured {
+    grid-column:span 2;
+  }
+  .view-grid .monitor-card,
+  .view-grid .monitor-card.monitor-featured {
+    min-width:0;
+  }
+  .view-grid .monitor-media,
+  .view-grid .monitor-featured .monitor-media {
+    height:176px;
+  }
+  .view-grid .monitor-featured .monitor-title {
+    font-size:19px;
+    line-height:1.36;
+  }
+  .view-grid .monitor-card-content {
+    padding:17px 17px 16px;
+  }
+}
+@media (min-width:768px) and (max-width:1100px) {
+  .view-grid .monitor-feed {grid-template-columns:repeat(2,minmax(0,1fr));gap:19px}
+}
+
+/* Prevent any publisher icon from flashing a broken <img> while a remote
+   favicon is loading, failing, or being retried. The monogram is always ready. */
+.publisher-logo-stable{position:relative;isolation:isolate}
+.publisher-logo-stable .publisher-logo-standby{
+  position:absolute;inset:0;z-index:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .14s ease;
+}
+.publisher-logo-stable img.publisher-logo-asset{
+  position:absolute;z-index:1;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  display:block;width:88%;height:88%;max-width:88%;max-height:88%;
+  object-fit:contain;transition:opacity .14s ease;
+}
+
+/* Quiet, aligned selection/hover in the Source Monitoring sidebar. */
+.monitor-source-sidebar .monitor-sidebar-source{
+  transition:background-color .16s ease;
+}
+.monitor-source-sidebar .monitor-sidebar-source:hover:not(.monitor-source-selected){
+  background:rgba(61,96,136,.045);
+  border-radius:7px;
+}
+.monitor-source-sidebar .monitor-sidebar-source.monitor-source-selected{
+  padding-left:0;
+  padding-right:0;
+  margin-left:0;
+  margin-right:0;
+  border-radius:7px;
+  background:rgba(61,96,136,.075);
+  box-shadow:inset 2px 0 0 rgba(75,109,148,.55);
+}
+.monitor-source-sidebar .monitor-sidebar-source.monitor-source-selected .monitor-source-jump{
+  color:var(--text);
+  font-weight:750;
+}
+.monitor-source-sidebar .monitor-sidebar-source .monitor-source-jump:hover{
+  color:var(--text);
+  transform:none;
+}
+:root[data-theme="dark"] .monitor-source-sidebar .monitor-sidebar-source.monitor-source-selected{
+  background:rgba(139,166,204,.095);
+  box-shadow:inset 2px 0 0 rgba(139,166,204,.6);
+}
+:root[data-theme="dark"] .monitor-source-sidebar .monitor-sidebar-source:hover:not(.monitor-source-selected){
+  background:rgba(139,166,204,.055);
+}
+@media(prefers-reduced-motion:reduce){
+  .publisher-logo-stable .publisher-logo-standby,
+  .publisher-logo-stable img.publisher-logo-asset,
+  .monitor-source-sidebar .monitor-sidebar-source{transition:none}
+}
+
+/* Category trigger: deep-blue background instead of white/red. Drawer,
+   filters, category badges and category selection logic remain unchanged. */
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle{
+  background:#092e66;
+  border-color:#092e66;
+  color:#fff;
+  box-shadow:0 1px 2px rgba(5,28,67,.13);
+  transition:background-color .18s ease,border-color .18s ease;
+}
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle:hover,
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle:focus-visible{
+  background:#124381;
+  border-color:#124381;
+}
+.monitor-site-header .monitor-category-header-slot .monitor-category-toggle :is(span,svg){
+  color:inherit;
+}
+.monitor-site-header .monitor-category-header-slot .monitor-category-current{
+  color:rgba(255,255,255,.8);
+}
+
+/* Real connection state stays the only source of truth for the Live label. */
+.monitor-realtime .monitor-live-indicator{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  height:30px;
+  width:auto;
+  padding:0 4px;
+  background:transparent;
+  border:0;
+  border-radius:8px;
+  white-space:nowrap;
+}
+.monitor-realtime .monitor-live-indicator .monitor-live-label{
+  font-size:14px;
+  line-height:1;
+  font-weight:750;
+  letter-spacing:.035em;
+  color:var(--muted);
+}
+.monitor-realtime .monitor-live-indicator.monitor-live-live .monitor-live-label{
+  color:#ba1e2e;
+}
+:root[data-theme="dark"] .monitor-realtime .monitor-live-indicator.monitor-live-live .monitor-live-label{
+  color:#ff858f;
+}
+
+/* New stories: compact, legible CTA; the existing onClick refresh is unchanged. */
+.monitor-realtime .monitor-new-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  padding:7px 12px 7px 8px;
+  min-height:38px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  color:#fff;
+  background:linear-gradient(115deg,#174da5 0%,#304eae 57%,#5b42a5 100%);
+  box-shadow:0 3px 9px rgba(34,64,148,.16);
+  text-align:left;
+  white-space:nowrap;
+  transition:filter .18s ease,box-shadow .18s ease;
+}
+.monitor-realtime .monitor-new-pill:hover:not(:disabled){
+  filter:brightness(1.09);
+  box-shadow:0 5px 14px rgba(34,64,148,.23);
+}
+.monitor-realtime .monitor-new-pill:disabled{
+  opacity:.65;
+  cursor:wait;
+}
+.monitor-realtime .monitor-update-count{
+  display:grid;
+  place-items:center;
+  height:23px;
+  min-width:25px;
+  padding:0 5px;
+  border-radius:7px;
+  background:rgba(255,255,255,.19);
+  font-size:12px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.monitor-realtime .monitor-update-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:2px;
+  line-height:1.15;
+}
+.monitor-realtime .monitor-update-copy strong{font-size:11px;font-weight:800}
+.monitor-realtime .monitor-update-copy small{font-size:9px;font-weight:500;opacity:.87}
+.monitor-realtime .monitor-update-arrow{font-size:18px;font-weight:700;line-height:1;opacity:.87}
+@media(max-width:767px){
+  .monitor-realtime .monitor-new-pill{gap:5px;min-height:31px;padding:4px 6px}
+  .monitor-realtime .monitor-update-count{height:19px;min-width:19px;font-size:10px;border-radius:5px}
+  .monitor-realtime .monitor-update-copy strong{font-size:9px}
+  .monitor-realtime .monitor-update-copy small{display:none}
+  .monitor-realtime .monitor-update-arrow{display:none}
+  .monitor-realtime .monitor-live-indicator{gap:4px;padding:0 2px}
+  .monitor-realtime .monitor-live-indicator .monitor-live-label{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .monitor-realtime .monitor-new-pill,
+  .monitor-site-header .monitor-category-header-slot .monitor-category-toggle{transition:none}
+}
+
+/* Mobile-only news monitor polish. Desktop and tablet desktop layouts untouched. */
+.monitor-category-label-mobile{display:none}
+@media (max-width:767px) {
+  /* Header: single calm brand row, balanced search and filters. */
+  .monitor-site-header .monitor-header-inner{padding-inline:12px}
+  .monitor-site-header .monitor-brand-row{
+    min-height:52px;
+    gap:7px;
+    border-bottom:1px solid color-mix(in srgb,var(--border) 65%,transparent);
+  }
+  .monitor-site-header .monitor-brand{
+    flex:1 1 auto;
+    min-width:0;
+    font-size:clamp(15px,4.55vw,20px);
+    line-height:1.18;
+    letter-spacing:-.028em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .monitor-site-header .monitor-header-actions{
+    flex:0 0 auto;
+    gap:6px;
+    margin-left:auto;
+  }
+  .monitor-site-header .monitor-category-header-slot{
+    flex:0 0 auto;
+    margin-right:0;
+  }
+  .monitor-site-header .monitor-category-header-slot .monitor-category-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:35px;
+    height:36px;
+    min-width:35px;
+    padding:0;
+    border-radius:9px;
+  }
+  .monitor-site-header .monitor-category-header-slot .monitor-category-menu-icon{
+    font-size:20px;
+    line-height:1;
+  }
+  .monitor-site-header .theme-switch{
+    width:35px;
+    height:35px;
+    padding:0;
+    border-radius:10px;
+    justify-content:center;
+  }
+  .monitor-site-header .theme-switch svg{width:17px;height:17px}
+  .monitor-site-header .monitor-realtime{gap:5px}
+  .monitor-site-header .monitor-realtime .monitor-live-indicator{height:30px;gap:4px;padding:0 1px}
+  .monitor-site-header .monitor-realtime .monitor-live-label{font-size:11px;letter-spacing:0}
+  .monitor-site-header .monitor-live-circle{width:8px;height:8px}
+  .monitor-site-header .monitor-header-secondary{padding:10px 0 11px!important}
+  .monitor-site-header .monitor-search-filter-group{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:7px;
+    width:100%;
+  }
+  .monitor-site-header .monitor-search-filter-group .monitor-search{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 72px;
+    gap:7px;
+    width:100%;
+    min-width:0;
+    max-width:none;
+    flex:none;
+  }
+  .monitor-site-header .monitor-search-filter-group .monitor-search input{
+    width:100%;
+    height:39px;
+    min-width:0;
+    border-radius:9px;
+    font-size:13px;
+    padding-inline:12px;
+  }
+  .monitor-site-header .monitor-search-filter-group .monitor-search button{
+    width:72px;
+    min-width:0;
+    height:39px;
+    padding:0 7px;
+    border-radius:9px;
+    font-size:12px;
+    flex:none;
+  }
+  .monitor-site-header .monitor-header-filter-slot,
+  .monitor-site-header .monitor-header-filter-controls,
+  .monitor-site-header .monitor-header-filter-controls .monitor-filter-actions{
+    width:100%;
+    min-width:0;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-filter-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:center;
+    gap:7px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .date-filter,
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter{
+    min-width:0;
+    width:100%;
+    max-width:100%;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-select,
+  .monitor-site-header .monitor-header-filter-controls select.monitor-select,
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter>.monitor-select{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    min-height:37px;
+    height:37px;
+    font-size:11px;
+    border-radius:9px;
+    padding-inline:10px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-clear-filters{
+    grid-column:1/-1;
+    justify-self:start;
+    font-size:11px;
+    padding:3px 0;
+  }
+  .monitor-site-header.monitor-toolbar-hidden .monitor-brand-row{min-height:46px}
+  .monitor-site-header.monitor-toolbar-hidden .monitor-brand{font-size:clamp(15px,4.2vw,19px)}
+
+  /* Remove empty vertical real estate above the first headline. */
+  .monitor-main-shell{padding:12px 12px 30px}
+  .monitor-home>.monitor-resultcount{
+    margin:0 0 13px;
+    padding:0 0 10px;
+    font-size:11px;
+  }
+  .monitor-home>.active-filter-row{margin:0 0 12px}
+  .monitor-feed-heading{
+    margin-bottom:11px;
+    gap:9px;
+    align-items:center;
+  }
+  .monitor-feed-title h2{font-size:15px;line-height:1.3}
+  .monitor-feed-actions .saved-filter{
+    min-height:34px;
+    padding:6px 10px;
+    font-size:11px;
+    border-radius:9px;
+  }
+  .monitor-feed-actions .saved-filter svg{width:15px;height:15px}
+  .monitor-feed,.view-grid .monitor-feed{gap:12px}
+
+  /* Compact editorial cards: visible picture, readable text and no dead space. */
+  .monitor-card,.view-grid .monitor-card,.view-grid .monitor-featured{
+    display:grid;
+    grid-template-columns:clamp(107px,31vw,138px) minmax(0,1fr);
+    min-height:150px;
+    height:auto;
+    border-radius:12px;
+  }
+  .monitor-media,.view-grid .monitor-media,.view-grid .monitor-featured .monitor-media{
+    width:100%;
+    height:auto;
+    min-height:150px;
+  }
+  .monitor-card-content,.view-grid .monitor-card-content{
+    min-width:0;
+    padding:11px 10px 10px;
+    gap:6px;
+  }
+  .monitor-title,.view-grid .monitor-title,.view-grid .monitor-featured .monitor-title{
+    font-size:clamp(12.75px,3.65vw,14.5px);
+    font-weight:650;
+    line-height:1.36;
+    -webkit-line-clamp:4;
+    overflow-wrap:break-word;
+  }
+  .monitor-card-footer{
+    flex:0 0 auto;
+    gap:5px;
+    padding-top:8px;
+    margin-top:auto;
+    align-items:center;
+    min-width:0;
+  }
+  .monitor-source-line{min-width:0;gap:5px;flex:1 1 auto}
+  .monitor-source-line .publisher-logo{
+    width:24px;
+    height:24px;
+    border-radius:6px;
+    flex:0 0 24px;
+  }
+  .monitor-source-meta{gap:2px;min-width:0}
+  .monitor-source-name{
+    font-size:10px;
+    line-height:1.16;
+    max-width:100%;
+  }
+  .monitor-source-meta time{font-size:9px;line-height:1.12}
+  .monitor-card-actions{flex:0 0 auto;gap:0}
+  .related-trigger{
+    min-height:29px;
+    padding:5px 6px;
+    font-size:9px;
+    line-height:1.15;
+    border-radius:6px;
+  }
+  .monitor-category{
+    top:7px;
+    left:7px;
+    max-width:calc(100% - 39px);
+    padding:5px 6px;
+    font-size:8px;
+    line-height:1.12;
+    border-radius:6px;
+  }
+  .monitor-category-label-full{display:none}
+  .monitor-category-label-mobile{display:inline}
+  .bookmark-button{
+    top:7px;
+    right:6px;
+    width:26px;
+    height:26px;
+    border-radius:7px;
+  }
+  .bookmark-button svg{width:14px;height:14px}
+}
+@media (max-width:370px) {
+  .monitor-site-header .monitor-brand{font-size:15px}
+  .monitor-site-header .monitor-header-actions{gap:4px}
+  .monitor-site-header .monitor-realtime .monitor-live-label{font-size:10px}
+  .monitor-card,.view-grid .monitor-card,.view-grid .monitor-featured{
+    grid-template-columns:105px minmax(0,1fr);
+    min-height:148px;
+  }
+  .monitor-media,.view-grid .monitor-media,.view-grid .monitor-featured .monitor-media{
+    min-height:148px;
+  }
+  .monitor-card-content,.view-grid .monitor-card-content{padding:9px 8px}
+  .monitor-title,.view-grid .monitor-title,.view-grid .monitor-featured .monitor-title{font-size:12.5px}
+  .monitor-source-line .publisher-logo{width:21px;height:21px;flex-basis:21px}
+  .monitor-source-name{font-size:9px}
+  .related-trigger{font-size:8px;padding-inline:5px}
+}
+
+/* Small-screen exceptions: keep the header usable when new stories arrive
+   or when a custom date range is selected. No desktop selectors. */
+@media (max-width:767px) {
+  .monitor-site-header .monitor-realtime .monitor-new-pill{
+    min-width:39px;
+    width:auto;
+    max-width:52px;
+    min-height:30px;
+    gap:3px;
+    padding:3px 5px;
+    border-radius:8px;
+  }
+  .monitor-site-header .monitor-realtime .monitor-update-copy{display:none}
+  .monitor-site-header .monitor-realtime .monitor-update-arrow{
+    display:inline;
+    font-size:13px;
+  }
+  .monitor-site-header .monitor-realtime .monitor-update-count{
+    min-width:19px;
+    height:19px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .date-filter:has(.custom-range){
+    grid-column:1/-1;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:7px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .custom-range{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    width:100%;
+    max-width:100%;
+  }
+  .monitor-site-header .monitor-header-filter-controls .custom-range input{
+    min-width:0;
+    width:100%;
+    max-width:none;
+  }
+  .monitor-site-header .monitor-header-filter-controls .custom-range button{
+    grid-column:1/-1;
+    width:100%;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter summary{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter summary strong{
+    max-width:calc(100% - 73px);
+  }
+}
+
+/* Mobile article proportions only. News/photo cards stay compact even
+   when their media assets have a tall natural aspect ratio. */
+@media (max-width:767px) {
+  .monitor-card,
+  .view-grid .monitor-card,
+  .view-grid .monitor-featured{
+    min-height:0;
+    height:auto;
+    align-items:start;
+    grid-template-rows:auto;
+  }
+  .monitor-media,
+  .view-grid .monitor-media,
+  .view-grid .monitor-featured .monitor-media{
+    min-height:0;
+    height:clamp(114px,32vw,132px);
+    max-height:132px;
+    align-self:start;
+    overflow:hidden;
+  }
+  .monitor-card-content,
+  .view-grid .monitor-card-content{
+    min-height:0;
+    padding:9px 10px;
+    gap:0;
+    justify-content:flex-start;
+  }
+  .monitor-title,
+  .view-grid .monitor-title,
+  .view-grid .monitor-featured .monitor-title{
+    -webkit-line-clamp:3;
+    line-height:1.32;
+    margin:0;
+  }
+  .monitor-card-footer{
+    margin-top:7px;
+    padding-top:6px;
+    gap:5px;
+  }
+  /* Always render exactly one short category label on phones. */
+  .monitor-card .monitor-category .monitor-category-label-full{display:none!important}
+  .monitor-card .monitor-category .monitor-category-label-mobile{display:inline!important}
+  /* Search and filters retain the approved compact mobile spacing. */
+  .monitor-site-header .monitor-search-filter-group .monitor-search input,
+  .monitor-site-header .monitor-search-filter-group .monitor-search button{
+    height:35px;
+    min-height:35px;
+  }
+  .monitor-site-header .monitor-header-filter-controls .monitor-select,
+  .monitor-site-header .monitor-header-filter-controls select.monitor-select,
+  .monitor-site-header .monitor-header-filter-controls .monitor-source-filter>.monitor-select{
+    height:33px;
+    min-height:33px;
+  }
+  .monitor-site-header .monitor-header-secondary{padding:8px 0 9px!important}
+  .monitor-site-header .monitor-search-filter-group{gap:6px}
+}@media (max-width:370px) {
+  .monitor-media,
+  .view-grid .monitor-media,
+  .view-grid .monitor-featured .monitor-media{
+    height:112px;
+    max-height:112px;
+    min-height:0;
+  }
+  .monitor-card-content,
+  .view-grid .monitor-card-content{padding:8px 8px}
+}

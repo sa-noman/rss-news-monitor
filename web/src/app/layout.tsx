@@ -22,6 +22,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={UI_LANG === 'bn' ? 'bn' : 'en'} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://www.google.com" />
+        <link rel="dns-prefetch" href="https://www.google.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <script dangerouslySetInnerHTML={{ __html: "try{document.documentElement.dataset.theme=localStorage.getItem('news-monitor-theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}" }} />
       </head>
       <body className="flex min-h-screen flex-col">

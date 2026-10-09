@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getBrowserClient, supabaseConfigured } from '@/lib/supabase';
+import { UI_LANG } from '@/lib/i18n';
 
 type Status = 'connecting' | 'live' | 'off';
 
@@ -45,13 +46,14 @@ export function LiveUpdates({ labels }: { labels: {
       <span role="status" aria-label={statusText} title={statusText}
         className={'monitor-live-indicator monitor-live-' + status}>
         <span className="monitor-live-circle" aria-hidden />
-        <span className="sr-only">{statusText}</span>
+        <span className="monitor-live-label" aria-hidden="true">{status === "live" ? "Live" : status === "connecting" ? labels.connecting : labels.off}</span>
       </span>
       {pending > 0 ? (
         <button type="button" onClick={refresh} disabled={busy}
           className="monitor-new-pill slide-up">
-          {pending} {labels.newStories}
-          <span className="hidden sm:inline"> · {labels.hint}</span>
+          <span className="monitor-update-count" aria-hidden="true">{pending}</span>
+          <span className="monitor-update-copy"><strong>{labels.newStories}</strong><small>{UI_LANG === 'bn' ? 'নতুন খবর দেখুন' : 'Load latest updates'}</small></span>
+          <span className="monitor-update-arrow" aria-hidden="true">↻</span>
         </button>
       ) : null}
     </div>

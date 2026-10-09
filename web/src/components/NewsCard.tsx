@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { categoryColor, fullDate, relativeTime } from '@/lib/format';
 import { categoryLabel, t } from '@/lib/i18n';
 import type { NewsItem } from '@/lib/types';
@@ -9,6 +9,8 @@ import { PublisherLogo } from './PublisherLogo';
 export interface MonitorCardProps {
   item: NewsItem;
   featured?: boolean;
+  priority?: boolean;
+  focused?: boolean;
   bookmarked?: boolean;
   relatedCount?: number;
   onBookmark?: (item: NewsItem) => void;
@@ -16,22 +18,52 @@ export interface MonitorCardProps {
 }
 
 export function NewsCard({
-  item, featured = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
+  item, featured = false, priority = false, focused = false, bookmarked = false, relatedCount = 0, onBookmark, onRelated,
 }: MonitorCardProps) {
   const [brokenImage, setBrokenImage] = useState(false);
+  const [foundImage, setFoundImage] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
+  const rightsReviewedSource = item.source_name === 'The Washington Post';
+  useEffect(() => { setBrokenImage(false); setFoundImage(null); setVisible(false); }, [item.id]);
+  const mediaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (item.image_url && !rightsReviewedSource) return;
+    const media = mediaRef.current;
+    if (!media) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, {rootMargin:'140px'});
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, [item.id, item.image_url, rightsReviewedSource]);
+  useEffect(() => {
+    if (!visible || (item.image_url && !rightsReviewedSource) || !/^[0-9a-f-]{36}$/i.test(item.id)) return;
+    const controller = new AbortController();
+    fetch('/api/article-image?id=' + encodeURIComponent(item.id), {signal:controller.signal})
+      .then(res => res.ok ? res.json() as Promise<{image:string|null}> : {image:null})
+      .then(data => {if (!controller.signal.aborted && data.image) setFoundImage(data.image);})
+      .catch(() => {});
+    return () => controller.abort();
+  }, [visible,item.id,item.image_url,rightsReviewedSource]);
   const dict = t();
   const color = categoryColor(item.category);
   const publishDate = item.published_at ?? item.created_at;
   const timeText = relativeTime(publishDate);
-  const imageAvailable = Boolean(item.image_url && !brokenImage);
+  // Always prefer the original image already collected from RSS.
+  // Only request a missing photo from the publisher when RSS supplied none.
+  const resolvedImage = rightsReviewedSource ? foundImage : ((item.image_url?.trim() || foundImage) ?? null);
+  const imageAvailable = Boolean(resolvedImage && !brokenImage);
 
   return (
-    <article className={'monitor-card card ' + (featured ? 'monitor-featured ' : '')}>
-      <div className="monitor-media" style={{ backgroundColor: color + '17' }}>
+    <article id={focused ? 'latest-source-story' : undefined} className={'monitor-card card ' + (featured ? 'monitor-featured ' : '') + (focused ? ' monitor-source-focused' : '')}>
+      <div ref={mediaRef} className="monitor-media" style={{ backgroundColor: color + '17' }}>
         {imageAvailable ? (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-image-link" aria-label={item.title}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="monitor-photo" src={item.image_url!} alt="" loading="lazy" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
+            <img key={resolvedImage} className="monitor-photo" src={resolvedImage!} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" referrerPolicy="no-referrer" onError={() => setBrokenImage(true)} />
           </a>
         ) : (
           <a href={item.link} target="_blank" rel="noopener noreferrer nofollow" className="monitor-logo-fallback" aria-label={item.title}>
@@ -39,8 +71,13 @@ export function NewsCard({
             <span>{item.source_name}</span>
           </a>
         )}
-        <span className="monitor-category" style={{ backgroundColor: color }}>
-          {categoryLabel(item.category)}
+        <span className="monitor-category" style={{ backgroundColor: color }} title={categoryLabel(item.category)}>
+          <span className="monitor-category-label-full">{categoryLabel(item.category)}</span>
+          <span className="monitor-category-label-mobile">{item.category === 'Economy & Business'
+            ? (categoryLabel(item.category) === 'Economy & Business' ? 'Economy' : 'অর্থনীতি')
+            : item.category === 'Culture & Entertainment'
+            ? (categoryLabel(item.category) === 'Culture & Entertainment' ? 'Culture' : 'সংস্কৃতি')
+            : categoryLabel(item.category)}</span>
         </span>
         {onBookmark ? (
           <button className={'bookmark-button ' + (bookmarked ? 'is-bookmarked' : '')}
@@ -75,9 +112,6 @@ export function NewsCard({
                 Related News{relatedCount > 1 ? ' · ' + (relatedCount - 1) : ''}
               </button>
             ) : null}
-            <a className="monitor-read-link" href={item.link} target="_blank" rel="noopener noreferrer nofollow">
-              {dict.readAtSource} ↗
-            </a>
           </div>
         </div>
       </div>

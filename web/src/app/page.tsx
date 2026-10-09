@@ -94,7 +94,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
         </div>
       ) : null}
 
-      <NewsDashboard items={items} sources={sourcesResult.sources}>
+      <NewsDashboard items={items} sources={sourcesResult.sources} focusedSource={first(sp.focus) === 'latest' ? source : undefined}>
         <Pagination page={page} totalPages={totalPages} query={filters} />
       </NewsDashboard>
     </div>

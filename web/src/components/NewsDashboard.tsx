@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import type { FeedSourceRow, NewsItem } from '@/lib/types';
 import { fullDate, relativeTime } from '@/lib/format';
@@ -24,13 +24,14 @@ interface Props {
   items: NewsItem[];
   sources: FeedSourceRow[];
   children?: ReactNode;
+  focusedSource?: string;
 }
 
 /**
  * Presentation-only client state. News, pagination, and all server filters still
  * come from the existing Next.js page and Supabase query.
  */
-export function NewsDashboard({ items, sources, children }: Props) {
+export function NewsDashboard({ items, sources, children, focusedSource }: Props) {
   const [view, setView] = useState<View>('list');
   const [saved, setSaved] = useState<NewsItem[]>([]);
   const [savedOnly, setSavedOnly] = useState(false);
@@ -39,6 +40,44 @@ export function NewsDashboard({ items, sources, children }: Props) {
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedError, setRelatedError] = useState(false);
   const bn = UI_LANG === 'bn';
+  const [jumpReady, setJumpReady] = useState(false);
+  const [expandedSources, setExpandedSources] = useState(false);
+  const sourceListRef = useRef<HTMLDivElement>(null);
+  const [sourceListHeight, setSourceListHeight] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    const list = sourceListRef.current;
+    if (!list) return;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>('.monitor-sidebar-source'));
+    if (!rows.length) return;
+    const visibleCount = Math.min(10, rows.length);
+    const firstTenHeight = rows.slice(0, visibleCount).reduce((sum, row) => sum + row.getBoundingClientRect().height, 0);
+    const fullHeight = rows.reduce((sum, row) => sum + row.getBoundingClientRect().height, 0);
+    // Expansion always reveals additional rows below the first ten.
+    // If there are many, keep four extra rows in view and scroll within the sidebar.
+    const expandedHeight = Math.min(fullHeight, firstTenHeight + (firstTenHeight / visibleCount) * 4);
+    setSourceListHeight(Math.ceil(expandedSources ? expandedHeight : firstTenHeight));
+  }, [expandedSources, sources]);
+
+  useEffect(() => {
+    if (!focusedSource) return;
+    // Wait for the sticky header and its toolbar to settle before positioning.
+    const id = window.setTimeout(() => {
+      const element = document.getElementById('latest-source-story');
+      if (!element) return;
+      const header = document.querySelector<HTMLElement>('.monitor-site-header');
+      // Stabilize the compact header BEFORE scrolling, avoiding its toolbar
+      // switching height while we calculate the final article position.
+      header?.classList.add('monitor-toolbar-hidden');
+      window.requestAnimationFrame(() => {
+        const offset = (header?.getBoundingClientRect().height ?? 65) + 24;
+        const top = window.scrollY + element.getBoundingClientRect().top - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        setJumpReady(true);
+      });
+    }, 160);
+    return () => clearTimeout(id);
+  }, [focusedSource]);
 
   useEffect(() => {
     try {
@@ -114,7 +153,8 @@ export function NewsDashboard({ items, sources, children }: Props) {
   };
 
   const activeSources = sources.filter((s) => s.is_active);
-  const uniqueSources = activeSources.filter((s, i) => activeSources.findIndex((x) => x.name === s.name) === i);
+  const uniqueSources = activeSources.filter((s, i) => activeSources.findIndex((x) => x.name === s.name) === i)
+    .sort((a, b) => (Date.parse(b.last_checked_at ?? '') || 0) - (Date.parse(a.last_checked_at ?? '') || 0));
 
   return (
     <section className={'monitor-dashboard ' + (view === 'grid' ? 'view-grid' : 'view-list')}>
@@ -148,7 +188,8 @@ export function NewsDashboard({ items, sources, children }: Props) {
             <div className="monitor-feed">
               {visible.map((item, i) => {
                 const related = relatedFor(item);
-                return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0}
+                return <NewsCard key={item.id} item={item} featured={!savedOnly && i === 0} priority={!savedOnly && i === 0}
+                  focused={Boolean(jumpReady && focusedSource && item.source_name === focusedSource && i === 0)}
                   bookmarked={saved.some((x) => x.id === item.id)}
                   onBookmark={toggleBookmark}
                   relatedCount={related.length}
@@ -173,19 +214,34 @@ export function NewsDashboard({ items, sources, children }: Props) {
             </div>
             <Link href="/sources" aria-label="View all source status">↗</Link>
           </div>
-          <div className="monitor-sidebar-list">
-            {uniqueSources.slice(0, 10).map((source) => (
-              <div className="monitor-sidebar-source" key={source.name}>
-                <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
+          <div ref={sourceListRef} id="monitor-sidebar-source-list" style={sourceListHeight !== null ? { height: sourceListHeight } : undefined} className={"monitor-sidebar-list " + (expandedSources ? "monitor-sidebar-list-expanded" : "")}>
+            {(expandedSources ? uniqueSources : uniqueSources.slice(0, 10)).map((source) => (
+              <div className={"monitor-sidebar-source " + (focusedSource === source.name ? "monitor-source-selected" : "")} key={source.name}>
+                {source.name.startsWith('Haaretz') ? (
+                  <span className="publisher-logo" title="Haaretz" aria-label="Haaretz" style={{ position: "relative" }}>
+                    {/* Wikimedia Commons hosts Haaretz's square 2023 logo in vector format. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Logo_Haaretz_2023_blue.svg"
+                      alt="Haaretz" loading="lazy" referrerPolicy="no-referrer" style={{ position: "relative", zIndex: 1 }}
+                      onError={event => { event.currentTarget.style.display = "none"; }} />
+                    <span className="publisher-monogram" aria-hidden="true" style={{ position: "absolute", zIndex: 0 }}>H</span>
+                  </span>
+                ) : source.name === 'Middle East Eye' ? (
+                  <span className="publisher-logo" title="Middle East Eye" aria-label="Middle East Eye" style={{ position: 'relative', background: '#422364', color: '#fff' }}>
+                    <span aria-hidden="true" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '-.03em', lineHeight: 1 }}>MEE</span>
+                  </span>
+                ) : (
+                  <PublisherLogo name={source.name} sourceUrl={source.website_url ?? source.feed_url} />
+                )}
                 <div className="monitor-sidebar-source-text">
-                  <strong title={source.name}>{source.name}</strong>
+                  <Link className="monitor-source-jump" aria-current={focusedSource === source.name ? 'true' : undefined} title={'Jump to latest '+source.name+' story'} href={'/?source=' + encodeURIComponent(source.name) + '&focus=latest'}>{source.name}</Link>
                   <small>{source.last_checked_at ? (bn ? 'চেক ' : 'Checked ') + relativeTime(source.last_checked_at) : (bn ? 'সক্রিয় ফিড' : 'Active feed')}</small>
                 </div>
                 <span className="monitor-source-active" title={bn ? 'সক্রিয়' : 'Active'} />
               </div>
             ))}
           </div>
-          <Link href="/sources" className="monitor-all-sources">{bn ? 'সব সোর্সের অবস্থা দেখুন' : 'View all source health'} →</Link>
+          <button type="button" className="monitor-all-sources monitor-source-expand" aria-expanded={expandedSources} aria-controls="monitor-sidebar-source-list" onClick={() => setExpandedSources(value => !value)}>{expandedSources ? (bn ? "প্রথম ১০টি দেখুন" : "Show first 10 sources") : (bn ? `সব ${uniqueSources.length}টি সোর্স দেখুন` : `View all ${uniqueSources.length} sources`)} <span aria-hidden>{expandedSources ? "↑" : "↓"}</span></button>
           <div className="monitor-sidebar-note">
             <strong>{bn ? 'মনিটরিং' : 'Monitoring'}</strong>
             <span>{bn ? 'সর্বশেষ সংবাদ ও সোর্সের অবস্থা' : 'Latest headlines and source status'}</span>

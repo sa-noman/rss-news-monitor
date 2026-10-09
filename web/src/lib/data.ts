@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { demoFeedSources, demoNews, demoScrapeLogs } from './demo-data';
 import { getServerClient, supabaseConfigured } from './supabase';
 import type { CategoryStat, FeedSourceRow, NewsItem, NewsQueryResult, ScrapeLogRow } from './types';
@@ -141,7 +142,7 @@ export interface SourcesResult {
   error?: string;
 }
 
-export async function fetchSources(): Promise<SourcesResult> {
+export const fetchSources = cache(async function fetchSources(): Promise<SourcesResult> {
   const supabase = getServerClient();
   if (!supabase) return { sources: demoFeedSources(), mode: 'demo' };
   try {
@@ -154,7 +155,7 @@ export async function fetchSources(): Promise<SourcesResult> {
   } catch (err) {
     return { sources: demoFeedSources(), mode: 'demo', error: (err as Error).message };
   }
-}
+});
 
 export async function fetchRecentLogs(limit = 40): Promise<{ logs: ScrapeLogRow[]; mode: 'live' | 'demo' }> {
   const supabase = getServerClient();
