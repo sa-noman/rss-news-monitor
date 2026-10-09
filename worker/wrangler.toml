@@ -39,3 +39,6 @@ enabled = true
 
 # Local development: `npx wrangler dev` reads secrets from .dev.vars
 # (create worker/.dev.vars locally — it is gitignored)
+
+# GitHub-connected Cloudflare Workers Builds initial rollout.
+# Existing schedule, secrets, and runtime settings remain unchanged.
