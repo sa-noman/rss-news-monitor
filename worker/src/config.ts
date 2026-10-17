@@ -6,7 +6,8 @@ import type { FeedSource } from './types';
  * (`public.feed_sources`) is the source of truth; this mirrors migration
  * 20261008000002_seed_feed_sources.sql.
  *
- * Every URL was verified live on 2026-10-08 — see docs/FEEDS-VERIFICATION.md.
+ * The original 18 feeds were verified on 2026-10-08 (docs/FEEDS-VERIFICATION.md).
+ * Six more publisher feeds were sourced on 2026-10-18; confirm ingestion via scrape_logs.
  */
 export const DEFAULT_FEEDS: FeedSource[] = [
   { name: 'Al Jazeera', feed_url: 'https://www.aljazeera.com/xml/rss/all.xml', website_url: 'https://www.aljazeera.com', is_active: true },
@@ -27,20 +28,28 @@ export const DEFAULT_FEEDS: FeedSource[] = [
   { name: 'Haaretz (Middle East)', feed_url: 'https://www.haaretz.com/srv/middle-east-news-rss', website_url: 'https://www.haaretz.com', is_active: true },
   { name: 'Axios', feed_url: 'https://api.axios.com/feed/', website_url: 'https://www.axios.com', is_active: true },
   { name: 'POLITICO', feed_url: 'https://rss.politico.com/politics-news.xml', website_url: 'https://www.politico.com', is_active: true },
+  // Additional publisher feeds requested on 2026-10-18.
+  { name: 'The Telegraph', feed_url: 'https://www.telegraph.co.uk/rss/', website_url: 'https://www.telegraph.co.uk', is_active: true },
+  { name: 'NDTV', feed_url: 'https://feeds.feedburner.com/ndtvnews-latest', website_url: 'https://www.ndtv.com', is_active: true },
+  // AFP makes agency press releases publicly available; this is not its subscription newswire.
+  { name: 'AFP (Press Releases)', feed_url: 'https://www.afp.com/en/actus/afp_communique/all/feed', website_url: 'https://www.afp.com/en', is_active: true },
+  { name: 'Hindustan Times', feed_url: 'https://www.hindustantimes.com/feeds/rss/latest/rssfeed.xml', website_url: 'https://www.hindustantimes.com', is_active: true },
+  { name: 'The Guardian', feed_url: 'https://www.theguardian.com/world/rss', website_url: 'https://www.theguardian.com', is_active: true },
+  { name: 'Fox News', feed_url: 'https://moxie.foxnews.com/google-publisher/latest.xml', website_url: 'https://www.foxnews.com', is_active: true },
 ];
 
 /**
  * Feed sharding.
  *
  * Cloudflare's FREE plan allows only ~10 ms of CPU per invocation (Cron
- * Trigger included), which is not enough to parse 18 feeds in one go. So each
+ * Trigger included), which is not enough to parse every feed in one go. So each
  * invocation handles one "shard" of the feed list, and the cron fires often
  * enough that every source is still polled every 30 minutes:
  *
  *     shard = floor(UTC minute / FEED_SHARD_INTERVAL_MINUTES) % FEED_SHARDS
  *
  * Defaults: 30 slots, one slot per minute, cron ticks every minute. Each
- * invocation therefore handles a single feed (18 feeds across 30 slots — the
+ * invocation therefore handles a single feed (24 feeds across 30 slots — the
  * remaining ticks are no-ops), a source is polled every 30 minutes exactly,
  * and one invocation costs the CPU of one feed instead of eighteen.
  * Heavy feeds (Axios, POLITICO, The Atlantic ship large bodies) are handled by
@@ -80,7 +89,7 @@ export const INSERT_CHUNK_SIZE = 100;
  * returns HTTP 403 for UAs containing "Bot"/"crawler" patterns and for
  * FeedFetcher-Google, while a plain product-style UA is served normally.
  * We stay honest (a real product name, no browser spoofing) — this exact
- * string was verified working on all 18 configured feeds.
+ * string was verified working on the original 18 configured feeds.
  */
 export const USER_AGENT = 'NewsMonitor/1.0 (RSS aggregator)';
 
